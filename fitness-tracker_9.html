@@ -1,0 +1,3919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fitness Tracker">
+<title>Fitness Tracker</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+img, canvas, video {
+  max-width: 100%;
+  height: auto;
+}
+
+:root {
+  --primary: #3266ad;
+  --primary-light: #e6f1fb;
+  --success: #639922;
+  --success-light: #eaf3de;
+  --danger: #e24b4a;
+  --danger-light: #fcebeb;
+  --warning: #ef9f27;
+  --warning-light: #faeeda;
+  --text-primary: #2c2c2a;
+  --text-secondary: #5f5e5a;
+  --border: #d3d1c7;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f1efe8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #85b7eb;
+    --primary-light: #0c447c;
+    --success: #97c459;
+    --success-light: #27500a;
+    --danger: #f09595;
+    --danger-light: #791f1f;
+    --warning: #fac775;
+    --warning-light: #633806;
+    --text-primary: #f1efe8;
+    --text-secondary: #b4b2a9;
+    --border: #444441;
+    --bg-primary: #2c2c2a;
+    --bg-secondary: #1a1a19;
+  }
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  padding-bottom: 40px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+html {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* iOS-specific input fixes */
+input, select, textarea, button {
+  font-size: 16px;
+  -webkit-appearance: none;
+  border-radius: 8px;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Better touch targets for mobile */
+@media (max-width: 768px) {
+  * {
+    max-width: 100vw;
+  }
+  
+  body, html {
+    overflow-x: hidden !important;
+    width: 100%;
+  }
+  
+  .container {
+    padding: 4px;
+    max-width: 100vw;
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  .card, .chart-container, .tab-content {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  table, canvas, img {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  
+  .btn {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+  
+  .nav-tab {
+    min-height: 44px;
+  }
+  
+  input, select, textarea {
+    min-height: 44px;
+  }
+  
+  .container {
+    padding: 4px;
+    max-width: 100%;
+  }
+  
+  h1 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    padding: 8px 4px;
+  }
+  
+  h2 {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  
+  h3 {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  
+  .card {
+    padding: 6px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+  }
+  
+  .chart-container {
+    padding: 6px;
+    margin-bottom: 8px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  
+  .stat-card {
+    padding: 8px;
+    border-radius: 6px;
+  }
+  
+  .stat-value {
+    font-size: 18px;
+  }
+  
+  .stat-label {
+    font-size: 10px;
+  }
+  
+  canvas {
+    max-height: 180px !important;
+  }
+  
+  /* Reduce all chart container heights on mobile */
+  .card canvas {
+    max-height: 100px !important;
+  }
+  
+  .card > div[style*="height"] {
+    height: 100px !important;
+  }
+  
+  .chart-navigation {
+    gap: 6px;
+    margin: 6px 0;
+  }
+  
+  .chart-navigation button {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .nav-tabs {
+    gap: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 8px;
+    padding: 0 4px;
+  }
+  
+  .nav-tab {
+    font-size: 12px;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+  
+  .form-group {
+    margin-bottom: 10px;
+  }
+  
+  label {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  input, select, textarea {
+    font-size: 16px;
+    padding: 8px;
+  }
+  
+  .btn {
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+  
+  .meal-section {
+    margin-bottom: 10px;
+  }
+  
+  .meal-header {
+    font-size: 13px;
+    padding: 6px 0;
+  }
+  
+  .meal-item {
+    padding: 6px 0;
+    font-size: 13px;
+  }
+  
+  .entry-item {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+  
+  /* Food tab - stack vertically on mobile */
+  .food-layout {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  
+  /* Pie charts - 2 per row on mobile */
+  .nutrition-charts {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  
+  /* 60-day trend charts - stack vertically on mobile */
+  .trends-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+}
+
+/* Desktop layout - larger and more spacious (min-width: 769px) */
+@media (min-width: 769px) {
+  .container {
+    padding: 20px;
+    max-width: 1000px;
+  }
+  
+  h1 {
+    font-size: 28px;
+    margin-bottom: 24px;
+  }
+  
+  h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  
+  h3 {
+    font-size: 16px;
+  }
+  
+  .card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .chart-container {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  /* Desktop: charts in grid */
+  .trends-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  
+  /* Desktop: Dashboard calorie charts - 2 columns side by side */
+  .dashboard-calorie-charts {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
+  }
+  
+  /* Desktop: Deficit chart - full width */
+  .dashboard-deficit-chart {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  
+  /* Desktop: ALL Dashboard charts 200px tall - target parent divs */
+  .dashboard-calorie-charts .card {
+    padding: 32px !important;
+  }
+  
+  .dashboard-calorie-charts .card > div:last-child,
+  .dashboard-deficit-chart .card > div:last-child,
+  .trends-grid .card > div:last-child {
+    height: 200px !important;
+  }
+  
+  .dashboard-deficit-chart .card {
+    padding: 32px !important;
+  }
+  
+  .trends-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  
+  .trends-grid .card {
+    padding: 32px !important;
+  }
+  
+  /* Desktop: larger chart heights */
+  .card > div[style*="height"] {
+    height: 80px !important;
+  }
+  
+  canvas {
+    max-height: 300px !important;
+  }
+  
+  .card canvas {
+    max-height: 200px !important;
+  }
+  
+  .stat-card {
+    padding: 12px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+  }
+  
+  .stat-label {
+    font-size: 12px;
+  }
+  
+  .stats-grid {
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .btn {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+  
+  .nav-tab {
+    font-size: 14px;
+    padding: 12px 20px;
+  }
+  
+  input, select, textarea {
+    font-size: 14px;
+    padding: 10px;
+  }
+  
+  label {
+    font-size: 14px;
+  }
+  
+  .entry-item {
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .meal-item {
+    padding: 8px 0;
+    font-size: 14px;
+  }
+  
+  /* Desktop: Food tab side-by-side */
+  .food-layout {
+    grid-template-columns: 200px 1fr !important;
+    gap: 16px !important;
+  }
+  
+  /* Desktop: 4 pie charts in a row */
+  .nutrition-charts {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 16px !important;
+  }
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1, h2, h3 {
+  font-weight: 500;
+}
+
+h1 {
+  font-size: 28px;
+  margin-bottom: 24px;
+}
+
+h2 {
+  font-size: 20px;
+  margin: 24px 0 12px;
+}
+
+h3 {
+  font-size: 16px;
+  margin: 16px 0 8px;
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.nav-tab {
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 15px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.nav-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.stat-unit {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.btn {
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.entry-list {
+  margin-top: 16px;
+}
+
+.entry-item {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.entry-content {
+  flex: 1;
+}
+
+.entry-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.entry-details {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.entry-time {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.entry-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.chart-container {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+canvas {
+  max-width: 100%;
+}
+
+.quick-add {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.quick-add-btn {
+  padding: 12px 8px;
+  font-size: 13px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-add-btn:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.macro-bar {
+  display: flex;
+  height: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.macro-bar-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: white;
+}
+
+.macro-protein { background: #3266ad; }
+.macro-carbs { background: #ef9f27; }
+.macro-fats { background: #639922; }
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.date-nav button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-primary);
+  padding: 4px 12px;
+}
+
+.date-nav span {
+  font-weight: 500;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+.badge-success {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.badge-danger {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.meal-section {
+  min-height: 14px;
+}
+
+.meal-item {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin-bottom: 3px;
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.meal-item-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.meal-item-cals {
+  color: var(--text-secondary);
+  font-size: 10px;
+  margin-right: 5px;
+}
+
+.meal-item-delete {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.meal-item-delete:active {
+  background: rgba(226, 75, 74, 0.1);
+  border-radius: 4px;
+}
+
+.meal-empty {
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-style: italic;
+  padding: 4px 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Fitness Tracker</h1>
+  
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+    <button class="nav-tab" data-tab="food">Food</button>
+    <button class="nav-tab" data-tab="workout">Workouts</button>
+    <button class="nav-tab" data-tab="biometrics">Biometrics</button>
+    <button class="nav-tab" data-tab="fooddatabase">Food Database</button>
+  </div>
+
+  <!-- Dashboard Tab -->
+  <div class="tab-content active" id="dashboard">
+    <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <label style="font-size: 13px; font-weight: 500;">Date</label>
+      <button id="prev-day-btn" style="padding: 8px 10px; font-size: 16px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px;">←</button>
+      <input type="date" id="dashboard-date-input" style="padding: 8px; font-size: 14px; flex: 1; min-width: 140px; max-width: 200px;">
+      <button id="next-day-btn" style="padding: 8px 10px; font-size: 16px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px;">→</button>
+      
+      <!-- Small Export/Import buttons -->
+      <button onclick="exportData()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; white-space: nowrap;">📤 Export</button>
+      <button onclick="document.getElementById('import-file').click()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: var(--success); color: white; border: none; border-radius: 4px; white-space: nowrap;">📥 Import</button>
+      <button onclick="syncAppleHealth()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: var(--warning); color: white; border: none; border-radius: 4px; white-space: nowrap;">🔄 Sync</button>
+      <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(event)">
+    </div>
+    
+    <div id="export-status" style="margin-bottom: 12px; padding: 8px 12px; font-size: 12px; border-radius: 4px; display: none;"></div>
+
+    <div class="dashboard-calorie-charts" style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
+      <div class="card" style="padding: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0; font-size: 15px;">Calorie intake</h3>
+          <div style="display: flex; gap: 4px;">
+            <button onclick="changeChartDate('weekly', -1)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">←</button>
+            <button onclick="changeChartDate('weekly', 1)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">→</button>
+          </div>
+        </div>
+        <div style="height: 60px;">
+          <canvas id="weekly-chart"></canvas>
+        </div>
+      </div>
+
+      <div class="card" style="padding: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0; font-size: 15px;">Active calories</h3>
+          <div style="display: flex; gap: 4px;">
+            <button onclick="changeChartDate('burned', -1)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">←</button>
+            <button onclick="changeChartDate('burned', 1)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">→</button>
+          </div>
+        </div>
+        <div style="height: 60px;">
+          <canvas id="weekly-burned-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-deficit-chart" style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
+      <div class="card" style="padding: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0; font-size: 15px;">Surplus/Deficit</h3>
+          <div style="display: flex; gap: 4px;">
+            <button onclick="changeChartDate('deficit', -1)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">←</button>
+            <button onclick="changeChartDate('deficit', 1)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">→</button>
+          </div>
+        </div>
+        <div style="height: 60px;">
+          <canvas id="deficit-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="trends-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+      <div class="card" style="padding: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0; font-size: 15px;">Weight trend (35 days)</h3>
+          <div style="display: flex; gap: 4px;">
+            <button onclick="changeChartDate('weight', -7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">←</button>
+            <button onclick="changeChartDate('weight', 7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">→</button>
+          </div>
+        </div>
+        <div style="height: 60px;">
+          <canvas id="weight-chart"></canvas>
+        </div>
+      </div>
+
+      <div class="card" style="padding: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0; font-size: 15px;">RHR trend (35 days)</h3>
+          <div style="display: flex; gap: 4px;">
+            <button onclick="changeChartDate('rhr', -7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">←</button>
+            <button onclick="changeChartDate('rhr', 7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">→</button>
+          </div>
+        </div>
+        <div style="height: 60px;">
+          <canvas id="rhr-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="trends-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="card" style="padding: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0; font-size: 15px;">HRV trend (35 days)</h3>
+          <div style="display: flex; gap: 4px;">
+            <button onclick="changeChartDate('hrv', -7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">←</button>
+            <button onclick="changeChartDate('hrv', 7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">→</button>
+          </div>
+        </div>
+        <div style="height: 60px;">
+          <canvas id="hrv-chart"></canvas>
+        </div>
+      </div>
+
+      <div class="card" style="padding: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0; font-size: 15px;">Sleep score (35 days)</h3>
+          <div style="display: flex; gap: 4px;">
+            <button onclick="changeChartDate('sleep', -7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">←</button>
+            <button onclick="changeChartDate('sleep', 7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">→</button>
+          </div>
+        </div>
+        <div style="height: 60px;">
+          <canvas id="sleep-chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Food Tab -->
+  <div class="tab-content" id="food">
+    <div class="food-layout" style="display: grid; grid-template-columns: 170px 1fr; gap: 10px; margin-bottom: 10px;">
+      <!-- Left: Compact Food Form -->
+      <div class="card" style="padding: 8px;">
+        <h3 style="margin: 0 0 6px; font-size: 12px;">Log food</h3>
+        <div class="form-group" style="margin-bottom: 6px;">
+          <label style="font-size: 10px;">Date</label>
+          <input type="date" id="food-date-input" style="padding: 3px; font-size: 11px;">
+        </div>
+        <button class="btn btn-primary" onclick="saveAsPreset()" style="width: 100%; padding: 4px; font-size: 10px; margin-bottom: 6px;">💾 Save as preset</button>
+        <div class="form-group" style="margin-bottom: 6px;">
+          <label style="font-size: 10px;">Food</label>
+          <select id="food-name" style="padding: 3px; font-size: 11px;">
+            <option value="">-- Select --</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 6px;">
+          <label style="font-size: 10px;">Grams</label>
+          <input type="number" id="food-grams" placeholder="100" style="padding: 3px; font-size: 11px;" value="100">
+        </div>
+        <div class="form-group" style="margin-bottom: 6px;">
+          <label style="font-size: 10px;">Meal</label>
+          <select id="food-meal" style="padding: 3px; font-size: 11px;">
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="snack">Snack</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="addFood()" style="width: 100%; padding: 4px; font-size: 11px;">Add</button>
+        
+        <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border);">
+          <div style="font-size: 9px; color: var(--text-secondary); margin-bottom: 2px;">Per <span id="display-grams">100</span>g:</div>
+          <div style="font-size: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px;">
+            <div>Cal: <span id="food-calories-display">-</span></div>
+            <div>P: <span id="food-protein-display">-</span>g</div>
+            <div>C: <span id="food-carbs-display">-</span>g</div>
+            <div>F: <span id="food-fats-display">-</span>g</div>
+          </div>
+        </div>
+        
+        <!-- Hidden fields for base food data (per 100g) -->
+        <input type="hidden" id="food-calories-base">
+        <input type="hidden" id="food-protein-base">
+        <input type="hidden" id="food-carbs-base">
+        <input type="hidden" id="food-fats-base">
+      </div>
+
+      <!-- Right: Today's Nutrition -->
+      <div class="card" style="padding: 8px;">
+        <h3 style="margin: 0 0 8px; font-size: 12px;">Today's nutrition</h3>
+        <div class="nutrition-charts" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+          <!-- Calories Chart -->
+          <div>
+            <div style="position: relative; width: 60px; height: 60px; margin: 0 auto;">
+              <canvas id="cal-chart"></canvas>
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                <div style="font-size: 13px; font-weight: 500;" id="total-calories">0</div>
+                <div style="font-size: 8px; color: var(--text-secondary);">/ 2100</div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 3px; font-size: 10px; color: var(--text-secondary);">Calories</div>
+          </div>
+          
+          <!-- Protein Chart -->
+          <div>
+            <div style="position: relative; width: 60px; height: 60px; margin: 0 auto;">
+              <canvas id="protein-chart"></canvas>
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                <div style="font-size: 13px; font-weight: 500;" id="total-protein">0</div>
+                <div style="font-size: 8px; color: var(--text-secondary);">/ 150g</div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 3px; font-size: 10px; color: var(--text-secondary);">Protein</div>
+          </div>
+          
+          <!-- Carbs Chart -->
+          <div>
+            <div style="position: relative; width: 60px; height: 60px; margin: 0 auto;">
+              <canvas id="carbs-chart"></canvas>
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                <div style="font-size: 13px; font-weight: 500;" id="total-carbs">0</div>
+                <div style="font-size: 8px; color: var(--text-secondary);">/ 262.5g</div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 3px; font-size: 10px; color: var(--text-secondary);">Carbs</div>
+          </div>
+          
+          <!-- Fats Chart -->
+          <div>
+            <div style="position: relative; width: 60px; height: 60px; margin: 0 auto;">
+              <canvas id="fats-chart"></canvas>
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                <div style="font-size: 13px; font-weight: 500;" id="total-fats">0</div>
+                <div style="font-size: 8px; color: var(--text-secondary);">/ 50g</div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 3px; font-size: 10px; color: var(--text-secondary);">Fats</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Section: Meals -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+      <div class="card" style="padding: 8px;">
+        <h3 style="margin: 0 0 5px; font-size: 12px;">Breakfast</h3>
+        <div id="breakfast-list" class="meal-section"></div>
+      </div>
+      
+      <div class="card" style="padding: 8px;">
+        <h3 style="margin: 0 0 5px; font-size: 12px;">Lunch</h3>
+        <div id="lunch-list" class="meal-section"></div>
+      </div>
+      
+      <div class="card" style="padding: 8px;">
+        <h3 style="margin: 0 0 5px; font-size: 12px;">Snack</h3>
+        <div id="snack-list" class="meal-section"></div>
+      </div>
+      
+      <div class="card" style="padding: 8px;">
+        <h3 style="margin: 0 0 5px; font-size: 12px;">Dinner</h3>
+        <div id="dinner-list" class="meal-section"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workout Tab -->
+  <div class="tab-content" id="workout">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+      <!-- Left: Log Workout Form -->
+      <div class="card">
+        <h2>Log workout</h2>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="workout-date-input">
+        </div>
+        <div class="form-group">
+          <label>Exercise type</label>
+          <select id="workout-type" onchange="updateExerciseNameOptions()">
+            <option value="">-- Select --</option>
+            <option value="run">Run</option>
+            <option value="strength">Strength training</option>
+            <option value="walk">Walk</option>
+          </select>
+        </div>
+        <div class="form-group" id="exercise-name-group" style="display: none;">
+          <label>Exercise name</label>
+          <select id="workout-name" onchange="updateRunFields()">
+            <option value="">-- Select --</option>
+          </select>
+        </div>
+        
+        <!-- Run-specific fields -->
+        <div id="run-fields" style="display: none;">
+          <!-- Long run / Threshold fields -->
+          <div id="basic-run-fields" style="display: none;">
+            <div class="row">
+              <div class="form-group">
+                <label>Distance (km)</label>
+                <input type="number" step="0.1" id="run-distance" placeholder="10.5">
+              </div>
+              <div class="form-group">
+                <label>Avg. pace (min/km)</label>
+                <input type="text" id="run-pace" placeholder="5:30">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Intervals fields -->
+          <div id="intervals-fields" style="display: none;">
+            <div class="row">
+              <div class="form-group">
+                <label>Series count</label>
+                <input type="number" id="intervals-series" placeholder="3">
+              </div>
+              <div class="form-group">
+                <label>Runs per series</label>
+                <input type="number" id="intervals-count" placeholder="5">
+              </div>
+            </div>
+            <div class="row">
+              <div class="form-group">
+                <label>Distance per run (km)</label>
+                <input type="number" step="0.1" id="intervals-distance" placeholder="0.4">
+              </div>
+              <div class="form-group">
+                <label>Avg. pace (min/km)</label>
+                <input type="text" id="intervals-pace" placeholder="4:30">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="form-group">
+            <label>Duration (min)</label>
+            <input type="number" id="workout-duration" placeholder="45">
+          </div>
+          <div class="form-group">
+            <label>Calories burned</label>
+            <input type="number" id="workout-calories" placeholder="300">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="workout-notes" placeholder="e.g., 3x10 @ 60kg, 5km distance, etc."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="addWorkout()">Add workout</button>
+      </div>
+
+      <!-- Right: Today's Workouts Summary -->
+      <div>
+        <h2 style="margin: 0 0 12px;">Workouts for selected date</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div class="stat-card">
+            <div class="stat-label">Total Duration</div>
+            <div class="stat-value" id="total-workout-duration">0<span class="stat-unit">min</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Calories</div>
+            <div class="stat-value" id="total-workout-calories">0<span class="stat-unit">kcal</span></div>
+          </div>
+        </div>
+        <div class="card" style="padding: 12px;">
+          <h3 style="margin: 0 0 8px; font-size: 14px;">Workout list</h3>
+          <div id="workout-summary-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Biometrics Tab -->
+  <div class="tab-content" id="biometrics">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <!-- Left: Log Biometrics Form -->
+      <div class="card">
+        <h2>Log biometrics</h2>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="bio-date-input">
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label>Weight (kg)</label>
+            <input type="number" step="0.1" id="bio-weight" placeholder="75.5">
+          </div>
+          <div class="form-group">
+            <label>Resting HR (bpm)</label>
+            <input type="number" id="bio-hr" placeholder="65">
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label>HRV (ms)</label>
+            <input type="number" id="bio-hrv" placeholder="50">
+          </div>
+          <div class="form-group">
+            <label>Sleep score (0-100)</label>
+            <input type="number" id="bio-sleep" placeholder="85">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="bio-notes" placeholder="How you're feeling, energy levels, etc."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="addBiometrics()">Save biometrics</button>
+      </div>
+
+      <!-- Right: Display Current Data -->
+      <div>
+        <h2 style="margin: 0 0 12px;">Data for selected date</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="stat-card">
+            <div class="stat-label">Weight</div>
+            <div class="stat-value" id="display-weight">--<span class="stat-unit">kg</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Resting HR</div>
+            <div class="stat-value" id="display-hr">--<span class="stat-unit">bpm</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">HRV</div>
+            <div class="stat-value" id="display-hrv">--<span class="stat-unit">ms</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Sleep Score</div>
+            <div class="stat-value" id="display-sleep">--<span class="stat-unit">/100</span></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top: 12px; padding: 12px;" id="display-notes-card">
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">Notes</div>
+          <div style="font-size: 14px;" id="display-notes">No notes for this date</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Food Database Tab -->
+  <div class="tab-content" id="fooddatabase">
+    <div class="card">
+      <h2>Add food to database</h2>
+      <div class="form-group">
+        <label>Food name</label>
+        <input type="text" id="db-food-name" placeholder="e.g., Chicken breast 100g">
+      </div>
+      <div class="row">
+        <div class="form-group">
+          <label>Calories</label>
+          <input type="number" id="db-food-calories" placeholder="165">
+        </div>
+        <div class="form-group">
+          <label>Protein (g)</label>
+          <input type="number" id="db-food-protein" placeholder="31">
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-group">
+          <label>Carbs (g)</label>
+          <input type="number" id="db-food-carbs" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>Fats (g)</label>
+          <input type="number" id="db-food-fats" placeholder="3.6">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addToFoodDatabase()">Add to database</button>
+    </div>
+
+    <div class="card">
+      <h3>Your food database</h3>
+      <div id="food-db-list"></div>
+    </div>
+
+    <div class="card">
+      <h3>Export data</h3>
+      <p style="color: var(--text-secondary); margin-bottom: 12px;">Download all your fitness data as JSON</p>
+      <button class="btn btn-secondary" onclick="exportData()">Download data</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+let currentDate = new Date();
+// Store individual dates for each chart (if they differ from main currentDate)
+let chartDates = {
+  weekly: null,
+  burned: null,
+  deficit: null,
+  weight: null,
+  rhr: null,
+  hrv: null,
+  sleep: null
+};
+
+let data = {
+  food: [],
+  workouts: [],
+  biometrics: [],
+  foodDatabase: []
+};
+
+// Change individual chart date
+function changeChartDate(chartName, days) {
+  // Get current date for this chart (use chart-specific or fall back to main)
+  let chartDate = chartDates[chartName] ? new Date(chartDates[chartName]) : new Date(currentDate);
+  chartDate.setDate(chartDate.getDate() + days);
+  
+  // Store the new date for this chart
+  chartDates[chartName] = chartDate;
+  
+  // Re-render only that specific chart
+  switch(chartName) {
+    case 'weekly':
+      renderWeeklyChart(chartDate);
+      break;
+    case 'burned':
+      renderWeeklyBurnedChart(chartDate);
+      break;
+    case 'deficit':
+      renderDeficitChart(chartDate);
+      break;
+    case 'weight':
+      renderWeightChart(chartDate);
+      break;
+    case 'rhr':
+      renderRHRChart(chartDate);
+      break;
+    case 'hrv':
+      renderHRVChart(chartDate);
+      break;
+    case 'sleep':
+      renderSleepChart(chartDate);
+      break;
+  }
+}
+
+// Load data from localStorage
+function loadData() {
+  try {
+    const saved = localStorage.getItem('fitnessTrackerData');
+    
+    // FORCE RESET FLAG - change this date to force reload
+    const LAST_UPDATE = '2026-04-23-v44-hrvScale100';
+    const lastUpdate = localStorage.getItem('lastUpdate');
+    
+    if (lastUpdate !== LAST_UPDATE) {
+      console.log('🔄 Force reset - clearing old data');
+      localStorage.clear();
+      localStorage.setItem('lastUpdate', LAST_UPDATE);
+      // Data will be reinitialized below
+    } else if (saved) {
+      data = JSON.parse(saved);
+      // Ensure foodDatabase exists for backwards compatibility
+      if (!data.foodDatabase) {
+        data.foodDatabase = [];
+      }
+    }
+    
+    // Add default foods - always ensure these are available
+    const defaultFoods = [
+      { id: 1, name: 'Krůtí prsa', calories: 105, protein: 24, carbs: 1, fats: 1 },
+      { id: 2, name: 'Ovesné vločky', calories: 354, protein: 14, carbs: 55, fats: 5 },
+      { id: 3, name: 'Soy Protein', calories: 376, protein: 85, carbs: 4, fats: 0 },
+      { id: 4, name: 'Mrkev', calories: 42, protein: 1, carbs: 7, fats: 0 },
+      { id: 5, name: 'Vejce', calories: 151, protein: 12, carbs: 0, fats: 10 },
+      { id: 6, name: 'Spaghetti', calories: 353, protein: 14, carbs: 69, fats: 1 },
+      { id: 7, name: 'Eidam', calories: 263, protein: 27, carbs: 0, fats: 17 },
+      { id: 8, name: 'Kečup', calories: 112, protein: 1, carbs: 24, fats: 0 }
+    ];
+    
+    // Always ensure default foods exist
+    defaultFoods.forEach(defaultFood => {
+      const exists = data.foodDatabase.find(f => f.name === defaultFood.name);
+      if (!exists) {
+        data.foodDatabase.push(defaultFood);
+      }
+    });
+    
+    // Save the food database
+    try {
+      localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+    } catch (e) {
+      console.error('Could not save food database:', e);
+    }
+    
+    updateFoodDropdown();
+  } catch (e) {
+    console.error('localStorage error:', e);
+    // localStorage might not work on file:// protocol
+    // Data will be initialized below
+  }
+}
+
+// Check if localStorage is working
+function checkLocalStorage() {
+  try {
+    localStorage.setItem('test', 'test');
+    localStorage.removeItem('test');
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Save data to localStorage
+function saveData() {
+  try {
+    localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+    updateDashboard();
+    updateFoodStats();
+    renderLists();
+  } catch (e) {
+    console.error('Cannot save to localStorage:', e);
+    // Still update displays even if save fails
+    updateDashboard();
+    updateFoodStats();
+    renderLists();
+  }
+}
+
+// Initialize
+loadData();
+
+// Always ensure weight data exists for all dates
+const weightData = [
+  { date: '2026-03-01', weight: 78 },
+  { date: '2026-03-02', weight: 77.6 },
+  { date: '2026-03-03', weight: 77.6 },
+  { date: '2026-03-04', weight: 77.1 },
+  { date: '2026-03-05', weight: 77.4 },
+  { date: '2026-03-06', weight: 77 },
+  { date: '2026-03-07', weight: 77.2 },
+  { date: '2026-03-08', weight: 77.5 },
+  { date: '2026-03-09', weight: 77.2 },
+  { date: '2026-03-10', weight: 76.7 },
+  { date: '2026-03-11', weight: 76.6 },
+  { date: '2026-03-12', weight: 76.7 },
+  { date: '2026-03-13', weight: 75.6 },
+  { date: '2026-03-14', weight: 77 },
+  { date: '2026-03-15', weight: 76.8 },
+  { date: '2026-03-16', weight: 76.3 },
+  { date: '2026-03-17', weight: 76.2 },
+  { date: '2026-03-18', weight: 76.6 },
+  { date: '2026-03-19', weight: 77 },
+  { date: '2026-03-20', weight: 75.9 },
+  { date: '2026-03-21', weight: 76 },
+  { date: '2026-03-22', weight: 75.7 },
+  { date: '2026-03-23', weight: 75.8 },
+  { date: '2026-03-24', weight: 75.6 },
+  { date: '2026-03-25', weight: 75.7 },
+  { date: '2026-03-26', weight: 75.6 },
+  { date: '2026-03-27', weight: 74.9 },
+  { date: '2026-03-28', weight: 75 },
+  { date: '2026-03-29', weight: 75.3 },
+  { date: '2026-03-30', weight: 74.9 },
+  { date: '2026-03-31', weight: 75.2 },
+  { date: '2026-04-01', weight: 75.1 },
+  { date: '2026-04-02', weight: 75.2 },
+  { date: '2026-04-03', weight: 74.9 },
+  { date: '2026-04-04', weight: 75.1 },
+  { date: '2026-04-05', weight: 75.5 },
+  { date: '2026-04-06', weight: 74.9 },
+  { date: '2026-04-07', weight: 75.1 },
+  { date: '2026-04-08', weight: 74.9 },
+  { date: '2026-04-09', weight: 74.6 },
+  { date: '2026-04-10', weight: 73.4 },
+  { date: '2026-04-11', weight: 74 },
+  { date: '2026-04-12', weight: 74.4 },
+  { date: '2026-04-13', weight: 74 }
+];
+
+weightData.forEach(entry => {
+  let existing = data.biometrics.find(b => b.date === entry.date);
+  if (!existing) {
+    data.biometrics.push({
+      id: Date.now() + Math.random(),
+      date: entry.date,
+      time: '07:00',
+      weight: entry.weight,
+      hr: null,
+      hrv: null,
+      sleep: null,
+      notes: ''
+    });
+  } else if (!existing.weight) {
+    existing.weight = entry.weight;
+  }
+});
+
+localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+
+// NOTE: Generic "Daily intake" entries disabled - using real food data instead
+/*
+// Always ensure calorie data exists
+const calorieData = [];
+
+// March 1 to April 10: 2150 calories per day
+for (let day = 1; day <= 31; day++) {
+  calorieData.push({ date: `2026-03-${String(day).padStart(2, '0')}`, calories: 2150 });
+}
+for (let day = 1; day <= 10; day++) {
+  calorieData.push({ date: `2026-04-${String(day).padStart(2, '0')}`, calories: 2150 });
+}
+// April 11: 2300 calories
+calorieData.push({ date: '2026-04-11', calories: 2300 });
+// April 12: 2600 calories
+calorieData.push({ date: '2026-04-12', calories: 2600 });
+// April 13: 2150 calories
+calorieData.push({ date: '2026-04-13', calories: 2150 });
+
+calorieData.forEach(entry => {
+  const existingFood = data.food.find(f => f.date === entry.date && f.name === 'Daily intake');
+  if (!existingFood) {
+    data.food.push({
+      id: Date.now() + Math.random(),
+      date: entry.date,
+      time: '12:00',
+      name: 'Daily intake',
+      calories: entry.calories,
+      protein: Math.round(entry.calories * 0.3 / 4),
+      carbs: Math.round(entry.calories * 0.5 / 4 * 10) / 10,
+      fats: Math.round(entry.calories * 0.2 / 9),
+      meal: 'lunch',
+      grams: 100
+    });
+  }
+});
+
+localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+*/
+
+// Always ensure Apple Health biometrics (RHR, HRV) exist
+const appleHealthBio = [
+  { date: '2026-03-01', rhr: 55, hrv: 56 }, { date: '2026-03-02', rhr: 50, hrv: 51 },
+  { date: '2026-03-03', rhr: 54, hrv: 50 }, { date: '2026-03-04', rhr: 55, hrv: 56 },
+  { date: '2026-03-05', rhr: 54, hrv: 50 }, { date: '2026-03-06', rhr: 53, hrv: 52 },
+  { date: '2026-03-07', rhr: 52, hrv: 52 }, { date: '2026-03-08', rhr: 52, hrv: 45 },
+  { date: '2026-03-09', rhr: 51, hrv: 57 }, { date: '2026-03-10', rhr: 52, hrv: 75 },
+  { date: '2026-03-11', rhr: 50, hrv: 76 }, { date: '2026-03-12', rhr: 47, hrv: 68 },
+  { date: '2026-03-13', rhr: 52, hrv: 66 }, { date: '2026-03-14', rhr: 48, hrv: 50 },
+  { date: '2026-03-15', rhr: 50, hrv: 62 }, { date: '2026-03-16', rhr: 50, hrv: 53 },
+  { date: '2026-03-17', rhr: 49, hrv: 50 }, { date: '2026-03-18', rhr: 52, hrv: 46 },
+  { date: '2026-03-19', rhr: 50, hrv: 53 }, { date: '2026-03-20', rhr: 49, hrv: 36 },
+  { date: '2026-03-21', rhr: 49, hrv: 56 }, { date: '2026-03-22', rhr: 45, hrv: 75 },
+  { date: '2026-03-23', rhr: 49, hrv: 61 }, { date: '2026-03-24', rhr: 53, hrv: 35 },
+  { date: '2026-03-25', rhr: 49, hrv: 40 }, { date: '2026-03-26', rhr: 52, hrv: 56 },
+  { date: '2026-03-27', rhr: 46, hrv: 54 }, { date: '2026-03-28', rhr: 49, hrv: 65 },
+  { date: '2026-03-29', rhr: 49, hrv: 37 }, { date: '2026-03-30', rhr: 52, hrv: 42 },
+  { date: '2026-03-31', rhr: 54, hrv: 43 }, { date: '2026-04-01', rhr: 48, hrv: 41 },
+  { date: '2026-04-02', rhr: 53, hrv: 49 }, { date: '2026-04-03', rhr: 54, hrv: 34 },
+  { date: '2026-04-04', rhr: 52, hrv: 37 }, { date: '2026-04-05', rhr: 54, hrv: 51 },
+  { date: '2026-04-06', rhr: 52, hrv: 57 }, { date: '2026-04-07', rhr: 53, hrv: 39 },
+  { date: '2026-04-08', rhr: 52, hrv: 40 }, { date: '2026-04-09', rhr: 49, hrv: 54 },
+  { date: '2026-04-10', rhr: 51, hrv: 42 }, { date: '2026-04-11', rhr: 49, hrv: 42 },
+  { date: '2026-04-12', rhr: 46, hrv: 67 }, { date: '2026-04-13', rhr: 51, hrv: 123 }
+];
+
+appleHealthBio.forEach(entry => {
+  let existing = data.biometrics.find(b => b.date === entry.date);
+  if (existing) {
+    if (!existing.hr) existing.hr = entry.rhr;
+    if (!existing.hrv) existing.hrv = entry.hrv;
+  }
+});
+
+localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+
+// Add sample sleep score data
+const sleepScoreData = [
+  { date: '2026-04-01', sleep: 78 },
+  { date: '2026-04-02', sleep: 82 },
+  { date: '2026-04-03', sleep: 75 },
+  { date: '2026-04-04', sleep: 80 },
+  { date: '2026-04-05', sleep: 85 },
+  { date: '2026-04-06', sleep: 79 },
+  { date: '2026-04-07', sleep: 83 },
+  { date: '2026-04-08', sleep: 77 },
+  { date: '2026-04-09', sleep: 81 },
+  { date: '2026-04-10', sleep: 84 },
+  { date: '2026-04-11', sleep: 76 },
+  { date: '2026-04-12', sleep: 88 },
+  { date: '2026-04-13', sleep: 80 }
+];
+
+sleepScoreData.forEach(entry => {
+  let existing = data.biometrics.find(b => b.date === entry.date);
+  if (existing && !existing.sleep) {
+    existing.sleep = entry.sleep;
+  }
+});
+
+localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+
+// Add food for April 13, 2026 with your actual meals
+const april13Food = [
+  // Breakfast
+  { date: '2026-04-13', time: '08:00', name: 'Ovesné vločky (80g)', calories: 283, protein: 11.2, carbs: 44, fats: 4, meal: 'breakfast', grams: 80 },
+  { date: '2026-04-13', time: '08:00', name: 'Soy Protein (50g)', calories: 188, protein: 42.5, carbs: 2, fats: 0, meal: 'breakfast', grams: 50 },
+  // Lunch
+  { date: '2026-04-13', time: '12:00', name: 'Mrkev (200g)', calories: 84, protein: 2, carbs: 14, fats: 0, meal: 'lunch', grams: 200 },
+  // Snack
+  { date: '2026-04-13', time: '15:00', name: 'Spaghetti (180g)', calories: 635, protein: 25.2, carbs: 124.2, fats: 1.8, meal: 'snack', grams: 180 },
+  { date: '2026-04-13', time: '15:00', name: 'Kečup (100g)', calories: 112, protein: 1, carbs: 24, fats: 0, meal: 'snack', grams: 100 },
+  // Dinner
+  { date: '2026-04-13', time: '19:00', name: 'Vejce (180g)', calories: 272, protein: 21.6, carbs: 0, fats: 18, meal: 'dinner', grams: 180 },
+  { date: '2026-04-13', time: '19:00', name: 'Eidam (100g)', calories: 263, protein: 27, carbs: 0, fats: 17, meal: 'dinner', grams: 100 }
+];
+
+april13Food.forEach(food => {
+  const exists = data.food.find(f => f.date === food.date && f.name === food.name);
+  if (!exists) {
+    data.food.push({
+      id: Date.now() + Math.random(),
+      ...food
+    });
+  }
+});
+
+// HARD-CODED CLEANUP: Remove ALL "Daily intake" entries
+console.log('Before cleanup:', data.food.length, 'food entries');
+data.food = data.food.filter(f => f.name !== 'Daily intake');
+console.log('After cleanup:', data.food.length, 'food entries (Daily intake removed)');
+
+// Add your actual daily calorie intake (hard-coded)
+const dailyCalorieIntake = [];
+
+// March 1 to April 10: 2150 calories
+for (let day = 1; day <= 31; day++) {
+  dailyCalorieIntake.push({ 
+    date: `2026-03-${String(day).padStart(2, '0')}`, 
+    calories: 2150 
+  });
+}
+for (let day = 1; day <= 10; day++) {
+  dailyCalorieIntake.push({ 
+    date: `2026-04-${String(day).padStart(2, '0')}`, 
+    calories: 2150 
+  });
+}
+
+// April 11: 2300 calories
+dailyCalorieIntake.push({ date: '2026-04-11', calories: 2300 });
+
+// April 12: 2600 calories
+dailyCalorieIntake.push({ date: '2026-04-12', calories: 2600 });
+
+// Add these entries if they don't exist
+dailyCalorieIntake.forEach(entry => {
+  const exists = data.food.find(f => f.date === entry.date && f.name === 'Daily intake');
+  if (!exists) {
+    data.food.push({
+      id: Date.now() + Math.random(),
+      date: entry.date,
+      time: '12:00',
+      name: 'Daily intake',
+      calories: entry.calories,
+      protein: Math.round(entry.calories * 0.3 / 4),
+      carbs: Math.round(entry.calories * 0.5 / 4 * 10) / 10,
+      fats: Math.round(entry.calories * 0.2 / 9),
+      meal: 'lunch',
+      grams: 100
+    });
+  }
+});
+
+console.log('After adding daily intake:', data.food.length, 'food entries');
+
+localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+
+// Save your default preset (will auto-apply to new empty days)
+const defaultPreset = [
+  // Breakfast
+  { time: '08:00', name: 'Ovesné vločky (80g)', calories: 283, protein: 11.2, carbs: 44, fats: 4, meal: 'breakfast', grams: 80 },
+  { time: '08:00', name: 'Soy Protein (50g)', calories: 188, protein: 42.5, carbs: 2, fats: 0, meal: 'breakfast', grams: 50 },
+  // Lunch  
+  { time: '12:00', name: 'Mrkev (200g)', calories: 84, protein: 2, carbs: 14, fats: 0, meal: 'lunch', grams: 200 },
+  // Snack
+  { time: '15:00', name: 'Spaghetti (180g)', calories: 635, protein: 25.2, carbs: 124.2, fats: 1.8, meal: 'snack', grams: 180 },
+  { time: '15:00', name: 'Kečup (100g)', calories: 112, protein: 1, carbs: 24, fats: 0, meal: 'snack', grams: 100 },
+  // Dinner
+  { time: '19:00', name: 'Vejce (180g)', calories: 272, protein: 21.6, carbs: 0, fats: 18, meal: 'dinner', grams: 180 },
+  { time: '19:00', name: 'Eidam (100g)', calories: 263, protein: 27, carbs: 0, fats: 17, meal: 'dinner', grams: 100 }
+];
+
+try {
+  localStorage.setItem('foodPreset', JSON.stringify(defaultPreset));
+  console.log('✅ Default food preset saved');
+} catch (e) {
+  console.error('Could not save preset:', e);
+}
+
+// Always ensure Apple Health workout data exists
+const appleWorkouts = [
+  { date: '2026-03-04', time: '17:24', type: 'run', name: 'Long run', duration: 36, calories: 350 },
+  { date: '2026-03-06', time: '17:30', type: 'run', name: 'Long run', duration: 35, calories: 340 },
+  { date: '2026-03-07', time: '14:39', type: 'run', name: 'Long run', duration: 70, calories: 680 },
+  { date: '2026-03-10', time: '17:30', type: 'run', name: 'Long run', duration: 34, calories: 330 },
+  { date: '2026-03-15', time: '14:35', type: 'run', name: 'Long run', duration: 92, calories: 890 },
+  { date: '2026-03-18', time: '18:02', type: 'run', name: 'Long run', duration: 35, calories: 340 },
+  { date: '2026-03-20', time: '15:02', type: 'run', name: 'Long run', duration: 39, calories: 380 },
+  { date: '2026-03-22', time: '14:57', type: 'run', name: 'Long run', duration: 103, calories: 1000 },
+  { date: '2026-03-24', time: '15:06', type: 'run', name: 'Long run', duration: 31, calories: 300 },
+  { date: '2026-04-03', time: '14:04', type: 'run', name: 'Long run', duration: 34, calories: 330 },
+  { date: '2026-04-04', time: '13:51', type: 'run', name: 'Long run', duration: 40, calories: 390 },
+  { date: '2026-04-05', time: '13:44', type: 'run', name: 'Long run', duration: 116, calories: 1130 },
+  { date: '2026-04-06', time: '08:13', type: 'walk', name: 'Walk', duration: 54, calories: 200 },
+  { date: '2026-04-07', time: '09:07', type: 'walk', name: 'Walk', duration: 78, calories: 280 },
+  { date: '2026-04-07', time: '13:49', type: 'run', name: 'Long run', duration: 36, calories: 350 },
+  { date: '2026-04-10', time: '14:00', type: 'run', name: 'Long run', duration: 41, calories: 400 },
+  { date: '2026-04-11', time: '16:53', type: 'run', name: 'Long run', duration: 40, calories: 390 },
+  { date: '2026-04-12', time: '10:54', type: 'walk', name: 'Walk', duration: 66, calories: 240 },
+  { date: '2026-04-12', time: '14:23', type: 'run', name: 'Long run', duration: 70, calories: 680 }
+];
+
+appleWorkouts.forEach(w => {
+  const exists = data.workouts.find(wo => wo.date === w.date && wo.time === w.time && wo.type === w.type);
+  if (!exists) {
+    data.workouts.push({
+      id: Date.now() + Math.random(),
+      date: w.date,
+      time: w.time,
+      type: w.type,
+      name: w.name,
+      duration: w.duration,
+      calories: w.calories,
+      notes: 'Imported from Apple Health'
+    });
+  }
+});
+
+localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+
+// Always ensure active calories data exists
+const activeCaloriesData = [
+  { date: '2026-03-01', calories: 343 }, { date: '2026-03-02', calories: 469 },
+  { date: '2026-03-03', calories: 307 }, { date: '2026-03-04', calories: 711 },
+  { date: '2026-03-05', calories: 521 }, { date: '2026-03-06', calories: 695 },
+  { date: '2026-03-07', calories: 1058 }, { date: '2026-03-08', calories: 362 },
+  { date: '2026-03-09', calories: 529 }, { date: '2026-03-10', calories: 659 },
+  { date: '2026-03-11', calories: 359 }, { date: '2026-03-12', calories: 532 },
+  { date: '2026-03-13', calories: 629 }, { date: '2026-03-14', calories: 328 },
+  { date: '2026-03-15', calories: 1214 }, { date: '2026-03-16', calories: 517 },
+  { date: '2026-03-17', calories: 298 }, { date: '2026-03-18', calories: 744 },
+  { date: '2026-03-19', calories: 530 }, { date: '2026-03-20', calories: 689 },
+  { date: '2026-03-21', calories: 440 }, { date: '2026-03-22', calories: 1324 },
+  { date: '2026-03-23', calories: 347 }, { date: '2026-03-24', calories: 681 },
+  { date: '2026-03-25', calories: 310 }, { date: '2026-03-26', calories: 592 },
+  { date: '2026-03-27', calories: 306 }, { date: '2026-03-28', calories: 331 },
+  { date: '2026-03-29', calories: 289 }, { date: '2026-03-30', calories: 304 },
+  { date: '2026-03-31', calories: 555 }, { date: '2026-04-01', calories: 309 },
+  { date: '2026-04-02', calories: 559 }, { date: '2026-04-03', calories: 643 },
+  { date: '2026-04-04', calories: 676 }, { date: '2026-04-05', calories: 1583 },
+  { date: '2026-04-06', calories: 643 }, { date: '2026-04-07', calories: 1083 },
+  { date: '2026-04-08', calories: 327 }, { date: '2026-04-09', calories: 553 },
+  { date: '2026-04-10', calories: 720 }, { date: '2026-04-11', calories: 725 },
+  { date: '2026-04-12', calories: 1404 }, { date: '2026-04-13', calories: 159 }
+];
+
+activeCaloriesData.forEach(entry => {
+  let existing = data.biometrics.find(b => b.date === entry.date);
+  if (existing) {
+    existing.activeCalories = entry.calories; // Always update
+  }
+});
+
+localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+
+// Always ensure basal calories data exists
+const basalCaloriesData = [
+  { date: '2026-03-01', calories: 1825 }, { date: '2026-03-02', calories: 1918 },
+  { date: '2026-03-03', calories: 1892 }, { date: '2026-03-04', calories: 1906 },
+  { date: '2026-03-05', calories: 1867 }, { date: '2026-03-06', calories: 1895 },
+  { date: '2026-03-07', calories: 1867 }, { date: '2026-03-08', calories: 1885 },
+  { date: '2026-03-09', calories: 1878 }, { date: '2026-03-10', calories: 1848 },
+  { date: '2026-03-11', calories: 1877 }, { date: '2026-03-12', calories: 1934 },
+  { date: '2026-03-13', calories: 1922 }, { date: '2026-03-14', calories: 1870 },
+  { date: '2026-03-15', calories: 1872 }, { date: '2026-03-16', calories: 1876 },
+  { date: '2026-03-17', calories: 1889 }, { date: '2026-03-18', calories: 1933 },
+  { date: '2026-03-19', calories: 1842 }, { date: '2026-03-20', calories: 1864 },
+  { date: '2026-03-21', calories: 1892 }, { date: '2026-03-22', calories: 1884 },
+  { date: '2026-03-23', calories: 1861 }, { date: '2026-03-24', calories: 1812 },
+  { date: '2026-03-25', calories: 1908 }, { date: '2026-03-26', calories: 1835 },
+  { date: '2026-03-27', calories: 1865 }, { date: '2026-03-28', calories: 1913 },
+  { date: '2026-03-29', calories: 1820 }, { date: '2026-03-30', calories: 1883 },
+  { date: '2026-03-31', calories: 1886 }, { date: '2026-04-01', calories: 1889 },
+  { date: '2026-04-02', calories: 1871 }, { date: '2026-04-03', calories: 1854 },
+  { date: '2026-04-04', calories: 1854 }, { date: '2026-04-05', calories: 1905 },
+  { date: '2026-04-06', calories: 1919 }, { date: '2026-04-07', calories: 1924 },
+  { date: '2026-04-08', calories: 1901 }, { date: '2026-04-09', calories: 1863 },
+  { date: '2026-04-10', calories: 1880 }, { date: '2026-04-11', calories: 1879 },
+  { date: '2026-04-12', calories: 1906 }, { date: '2026-04-13', calories: 1011 }
+];
+
+basalCaloriesData.forEach(entry => {
+  let existing = data.biometrics.find(b => b.date === entry.date);
+  if (existing) {
+    existing.basalCalories = entry.calories; // Always update
+  }
+});
+
+localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+
+// ===== REAL DATA FROM APPLE HEALTH EXPORT + MANUAL ENTRIES (March 19 - April 23, 2026) =====
+
+// Weight (manual entries)
+const weightDataNew = [
+  { date: '2026-04-10', weight: 74.0 },
+  { date: '2026-04-12', weight: 74.0 },
+  { date: '2026-04-13', weight: 74.0 },
+  { date: '2026-04-14', weight: 73.3 },
+  { date: '2026-04-16', weight: 73.2 },
+  { date: '2026-04-17', weight: 73.1 },
+  { date: '2026-04-18', weight: 73.1 },
+  { date: '2026-04-19', weight: 73.9 },
+  { date: '2026-04-20', weight: 74.0 },
+  { date: '2026-04-21', weight: 74.3 },
+  { date: '2026-04-22', weight: 73.2 },
+  { date: '2026-04-23', weight: 72.8 }
+];
+
+// RHR & HRV from Apple Health (real data)
+const realRhrHrv = [
+  { date: '2026-03-19', rhr: 50, hrv: 53 },
+  { date: '2026-03-20', rhr: 49, hrv: 36 },
+  { date: '2026-03-21', rhr: 49, hrv: 56 },
+  { date: '2026-03-22', rhr: 45, hrv: 75 },
+  { date: '2026-03-23', rhr: 49, hrv: 61 },
+  { date: '2026-03-24', rhr: 53, hrv: 35 },
+  { date: '2026-03-25', rhr: 49, hrv: 40 },
+  { date: '2026-03-26', rhr: 52, hrv: 56 },
+  { date: '2026-03-27', rhr: 46, hrv: 54 },
+  { date: '2026-03-28', rhr: 49, hrv: 65 },
+  { date: '2026-03-29', rhr: 49, hrv: 37 },
+  { date: '2026-03-30', rhr: 52, hrv: 42 },
+  { date: '2026-03-31', rhr: 54, hrv: 43 },
+  { date: '2026-04-01', rhr: 48, hrv: 41 },
+  { date: '2026-04-02', rhr: 53, hrv: 49 },
+  { date: '2026-04-03', rhr: 54, hrv: 34 },
+  { date: '2026-04-04', rhr: 52, hrv: 37 },
+  { date: '2026-04-05', rhr: 54, hrv: 51 },
+  { date: '2026-04-06', rhr: 52, hrv: 57 },
+  { date: '2026-04-07', rhr: 53, hrv: 39 },
+  { date: '2026-04-08', rhr: 52, hrv: 40 },
+  { date: '2026-04-09', rhr: 49, hrv: 54 },
+  { date: '2026-04-10', rhr: 48, hrv: 34 },
+  { date: '2026-04-11', rhr: 49, hrv: 42 },
+  { date: '2026-04-12', rhr: 46, hrv: 42 },
+  { date: '2026-04-13', rhr: 44, hrv: 35 },
+  { date: '2026-04-14', rhr: 45, hrv: 46 },
+  { date: '2026-04-15', rhr: 50, hrv: 38 },
+  { date: '2026-04-16', rhr: 48, hrv: 38 },
+  { date: '2026-04-17', rhr: 46, hrv: 39 },
+  { date: '2026-04-18', rhr: 45, hrv: 59 },
+  { date: '2026-04-19', rhr: 46, hrv: 46 },
+  { date: '2026-04-20', rhr: 47, hrv: 25 },
+  { date: '2026-04-21', rhr: 44, hrv: 28 },
+  { date: '2026-04-22', rhr: 45, hrv: 48 },
+  { date: '2026-04-23', rhr: 44, hrv: 36 }
+];
+
+// Sleep scores (manual)
+const sleepDataNew = [
+  { date: '2026-04-10', sleep: 98 },
+  { date: '2026-04-12', sleep: 93 },
+  { date: '2026-04-13', sleep: 90 },
+  { date: '2026-04-14', sleep: 91 },
+  { date: '2026-04-16', sleep: 94 },
+  { date: '2026-04-17', sleep: 83 },
+  { date: '2026-04-18', sleep: 93 },
+  { date: '2026-04-19', sleep: 76 },
+  { date: '2026-04-20', sleep: 85 },
+  { date: '2026-04-21', sleep: 96 },
+  { date: '2026-04-22', sleep: 70 },
+  { date: '2026-04-23', sleep: 94 }
+];
+
+// Active calories from Apple Health (real data)
+const activeCaloriesNew = [
+  { date: '2026-03-19', calories: 530 }, { date: '2026-03-20', calories: 1091 },
+  { date: '2026-03-21', calories: 440 }, { date: '2026-03-22', calories: 2421 },
+  { date: '2026-03-23', calories: 347 }, { date: '2026-03-24', calories: 1062 },
+  { date: '2026-03-25', calories: 310 }, { date: '2026-03-26', calories: 592 },
+  { date: '2026-03-27', calories: 306 }, { date: '2026-03-28', calories: 331 },
+  { date: '2026-03-29', calories: 289 }, { date: '2026-03-30', calories: 304 },
+  { date: '2026-03-31', calories: 555 }, { date: '2026-04-01', calories: 309 },
+  { date: '2026-04-02', calories: 559 }, { date: '2026-04-03', calories: 1050 },
+  { date: '2026-04-04', calories: 1120 }, { date: '2026-04-05', calories: 2866 },
+  { date: '2026-04-06', calories: 643 }, { date: '2026-04-07', calories: 1492 },
+  { date: '2026-04-08', calories: 327 }, { date: '2026-04-09', calories: 553 },
+  { date: '2026-04-10', calories: 1110 }, { date: '2026-04-11', calories: 1175 },
+  { date: '2026-04-12', calories: 2195 }, { date: '2026-04-13', calories: 319 },
+  { date: '2026-04-14', calories: 516 }, { date: '2026-04-15', calories: 1170 },
+  { date: '2026-04-16', calories: 545 }, { date: '2026-04-17', calories: 1130 },
+  { date: '2026-04-18', calories: 385 }, { date: '2026-04-19', calories: 2336 },
+  { date: '2026-04-20', calories: 338 }, { date: '2026-04-21', calories: 616 },
+  { date: '2026-04-22', calories: 597 }, { date: '2026-04-23', calories: 1120 }
+];
+
+// Basal calories from Apple Health (real data)
+const basalCaloriesNew = [
+  { date: '2026-03-19', calories: 1842 }, { date: '2026-03-20', calories: 1864 },
+  { date: '2026-03-21', calories: 1892 }, { date: '2026-03-22', calories: 1884 },
+  { date: '2026-03-23', calories: 1861 }, { date: '2026-03-24', calories: 1812 },
+  { date: '2026-03-25', calories: 1908 }, { date: '2026-03-26', calories: 1835 },
+  { date: '2026-03-27', calories: 1865 }, { date: '2026-03-28', calories: 1913 },
+  { date: '2026-03-29', calories: 1820 }, { date: '2026-03-30', calories: 1883 },
+  { date: '2026-03-31', calories: 1886 }, { date: '2026-04-01', calories: 1889 },
+  { date: '2026-04-02', calories: 1871 }, { date: '2026-04-03', calories: 1854 },
+  { date: '2026-04-04', calories: 1854 }, { date: '2026-04-05', calories: 1905 },
+  { date: '2026-04-06', calories: 1919 }, { date: '2026-04-07', calories: 1924 },
+  { date: '2026-04-08', calories: 1901 }, { date: '2026-04-09', calories: 1863 },
+  { date: '2026-04-10', calories: 1880 }, { date: '2026-04-11', calories: 1879 },
+  { date: '2026-04-12', calories: 1906 }, { date: '2026-04-13', calories: 1862 },
+  { date: '2026-04-14', calories: 1870 }, { date: '2026-04-15', calories: 1871 },
+  { date: '2026-04-16', calories: 1896 }, { date: '2026-04-17', calories: 1918 },
+  { date: '2026-04-18', calories: 1892 }, { date: '2026-04-19', calories: 1837 },
+  { date: '2026-04-20', calories: 1941 }, { date: '2026-04-21', calories: 1867 },
+  { date: '2026-04-22', calories: 1914 }, { date: '2026-04-23', calories: 1631 }
+];
+
+// Kcal intake (default 2100 if no manual entry)
+const kcalIntakeNew = [
+  { date: '2026-03-19', kcal: 2100 }, { date: '2026-03-20', kcal: 2100 },
+  { date: '2026-03-21', kcal: 2100 }, { date: '2026-03-22', kcal: 2100 },
+  { date: '2026-03-23', kcal: 2100 }, { date: '2026-03-24', kcal: 2100 },
+  { date: '2026-03-25', kcal: 2100 }, { date: '2026-03-26', kcal: 2100 },
+  { date: '2026-03-27', kcal: 2100 }, { date: '2026-03-28', kcal: 2100 },
+  { date: '2026-03-29', kcal: 2100 }, { date: '2026-03-30', kcal: 2100 },
+  { date: '2026-03-31', kcal: 2100 }, { date: '2026-04-01', kcal: 2100 },
+  { date: '2026-04-02', kcal: 2100 }, { date: '2026-04-03', kcal: 2100 },
+  { date: '2026-04-04', kcal: 2100 }, { date: '2026-04-05', kcal: 2100 },
+  { date: '2026-04-06', kcal: 2100 }, { date: '2026-04-07', kcal: 2100 },
+  { date: '2026-04-08', kcal: 2100 }, { date: '2026-04-09', kcal: 2300 },
+  { date: '2026-04-10', kcal: 2100 }, { date: '2026-04-11', kcal: 2100 },
+  { date: '2026-04-12', kcal: 2100 }, { date: '2026-04-13', kcal: 2100 },
+  { date: '2026-04-14', kcal: 2100 }, { date: '2026-04-15', kcal: 2100 },
+  { date: '2026-04-16', kcal: 2100 }, { date: '2026-04-17', kcal: 2100 },
+  { date: '2026-04-18', kcal: 2300 }, { date: '2026-04-19', kcal: 2100 },
+  { date: '2026-04-20', kcal: 2750 }, { date: '2026-04-21', kcal: 2100 },
+  { date: '2026-04-22', kcal: 2100 }, { date: '2026-04-23', kcal: 2100 }
+];
+
+// Workouts (manual training notes + Apple Health workouts)
+const workoutsNew = [
+  { date: '2026-03-20', type: 'Running', details: '39 min' },
+  { date: '2026-03-22', type: 'Running', details: '103 min' },
+  { date: '2026-03-24', type: 'Running', details: '31 min' },
+  { date: '2026-04-03', type: 'Running', details: '34 min' },
+  { date: '2026-04-04', type: 'Running', details: '40 min' },
+  { date: '2026-04-05', type: 'Running', details: '116 min' },
+  { date: '2026-04-06', type: 'Walking', details: '54 min' },
+  { date: '2026-04-07', type: 'Walking', details: '78 min' },
+  { date: '2026-04-07', type: 'Running', details: '36 min' },
+  { date: '2026-04-09', type: 'intervals', details: '4x800m, tempo 3:40–4:20/km, RPE 7-9, bolest v pravém boku ke konci' },
+  { date: '2026-04-10', type: 'run', details: '6.5 km, 6:09/km, HR avg 151' },
+  { date: '2026-04-11', type: 'long_run', details: '10.95 km, 6:23/km, HR avg 152, poslední km zrychlení' },
+  { date: '2026-04-12', type: 'Walking', details: '66 min' },
+  { date: '2026-04-12', type: 'Running', details: '70 min' },
+  { date: '2026-04-13', type: 'tempo_run', details: '6 km, 5:37/km, HR avg 160, max 184' },
+  { date: '2026-04-14', type: 'easy_day', details: '5.5 km chůze, 515 aktivních kcal' },
+  { date: '2026-04-15', type: 'tempo_run', details: '5 km PR 22:56, RPE max, kopce ke konci' },
+  { date: '2026-04-16', type: 'rest', details: 'Rest day' },
+  { date: '2026-04-17', type: 'walk', details: '6.2 km chůze' },
+  { date: '2026-04-18', type: 'light_walk', details: '2.7 km' },
+  { date: '2026-04-19', type: 'long_run', details: '14 km, HR 150→178, RPE ~7' },
+  { date: '2026-04-20', type: 'rest', details: 'nízká aktivita' },
+  { date: '2026-04-22', type: 'walk', details: '7.1 km' },
+  { date: '2026-04-23', type: 'tempo_run', details: '5 km tempo ~4:42–4:38/km, HR max 181, RPE 8-8.5' }
+];
+
+// Helper: find or create biometrics entry for a date
+function getOrCreateBiometric(date) {
+  let existing = data.biometrics.find(b => b.date === date);
+  if (!existing) {
+    existing = {
+      id: Date.now() + Math.random(),
+      date: date,
+      time: '07:00',
+      weight: null,
+      hr: null,
+      hrv: null,
+      sleep: null,
+      activeCalories: 0,
+      basalCalories: 0,
+      notes: ''
+    };
+    data.biometrics.push(existing);
+  }
+  return existing;
+}
+
+// Apply weight data (override existing values)
+weightDataNew.forEach(entry => {
+  const bio = getOrCreateBiometric(entry.date);
+  bio.weight = entry.weight;
+});
+
+// Apply RHR & HRV (override with real Apple Health data)
+realRhrHrv.forEach(entry => {
+  const bio = getOrCreateBiometric(entry.date);
+  bio.hr = entry.rhr;
+  bio.hrv = entry.hrv;
+});
+
+// Apply sleep scores
+sleepDataNew.forEach(entry => {
+  const bio = getOrCreateBiometric(entry.date);
+  bio.sleep = entry.sleep;
+});
+
+// Apply active calories (override)
+activeCaloriesNew.forEach(entry => {
+  const bio = getOrCreateBiometric(entry.date);
+  bio.activeCalories = entry.calories;
+});
+
+// Apply basal calories (override)
+basalCaloriesNew.forEach(entry => {
+  const bio = getOrCreateBiometric(entry.date);
+  bio.basalCalories = entry.calories;
+});
+
+// Apply kcal intake as "Daily intake" food entries (override existing)
+kcalIntakeNew.forEach(entry => {
+  // Remove any existing "Daily intake" for this date first
+  data.food = data.food.filter(f => !(f.date === entry.date && f.name === 'Daily intake'));
+  // Add new entry
+  data.food.push({
+    id: Date.now() + Math.random(),
+    date: entry.date,
+    time: '12:00',
+    name: 'Daily intake',
+    calories: entry.kcal,
+    protein: 0,
+    carbs: 0,
+    fats: 0,
+    meal: 'lunch',
+    grams: 0
+  });
+});
+
+// Apply workouts (avoid duplicates)
+workoutsNew.forEach(entry => {
+  const exists = data.workouts.some(w => 
+    w.date === entry.date && 
+    w.type === entry.type &&
+    w.notes === entry.details
+  );
+  
+  if (!exists) {
+    data.workouts.push({
+      id: Date.now() + Math.random(),
+      date: entry.date,
+      time: '18:00',
+      type: entry.type,
+      duration: 0,
+      calories: 0,
+      notes: entry.details
+    });
+  }
+});
+
+localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+
+
+console.log('Data loaded:', {
+  biometrics: data.biometrics.length,
+  food: data.food.length,
+  workouts: data.workouts.length,
+  foodDatabase: data.foodDatabase.length
+});
+
+
+// Tab switching
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+// Date navigation
+function changeDate(days) {
+  currentDate.setDate(currentDate.getDate() + days);
+  updateDateDisplay();
+  updateDashboard();
+  updateFoodStats();
+  renderLists();
+}
+
+function updateDateDisplay() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const selected = new Date(currentDate);
+  selected.setHours(0, 0, 0, 0);
+  
+  const diff = Math.floor((selected - today) / (1000 * 60 * 60 * 24));
+  
+  let label = '';
+  if (diff === 0) label = 'Today';
+  else if (diff === -1) label = 'Yesterday';
+  else if (diff === 1) label = 'Tomorrow';
+  else {
+    label = currentDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+  
+  document.getElementById('current-date').textContent = label;
+  
+  // Update food form date display
+  const foodDateEl = document.getElementById('food-date-display');
+  if (foodDateEl) {
+    foodDateEl.textContent = label;
+  }
+}
+
+function getDateString(date) {
+  // Use LOCAL time, not UTC - prevents timezone bugs
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Food database functions
+function addToFoodDatabase() {
+  const name = document.getElementById('db-food-name').value;
+  const calories = parseInt(document.getElementById('db-food-calories').value) || 0;
+  const protein = parseInt(document.getElementById('db-food-protein').value) || 0;
+  const carbs = parseInt(document.getElementById('db-food-carbs').value) || 0;
+  const fats = parseInt(document.getElementById('db-food-fats').value) || 0;
+  
+  if (!name) {
+    alert('Please enter a food name');
+    return;
+  }
+  
+  data.foodDatabase.push({
+    id: Date.now(),
+    name,
+    calories,
+    protein,
+    carbs,
+    fats
+  });
+  
+  document.getElementById('db-food-name').value = '';
+  document.getElementById('db-food-calories').value = '';
+  document.getElementById('db-food-protein').value = '';
+  document.getElementById('db-food-carbs').value = '';
+  document.getElementById('db-food-fats').value = '';
+  
+  updateFoodDropdown();
+  renderFoodDatabase();
+  saveData();
+}
+
+function deleteFromFoodDatabase(id) {
+  if (confirm('Delete this food from database?')) {
+    data.foodDatabase = data.foodDatabase.filter(item => item.id !== id);
+    updateFoodDropdown();
+    renderFoodDatabase();
+    saveData();
+  }
+}
+
+function updateFoodDropdown() {
+  const select = document.getElementById('food-name');
+  select.innerHTML = '<option value="">-- Select from database --</option>';
+  
+  data.foodDatabase.forEach(food => {
+    const option = document.createElement('option');
+    option.value = food.id;
+    option.textContent = food.name;
+    select.appendChild(option);
+  });
+}
+
+function renderFoodDatabase() {
+  const list = document.getElementById('food-db-list');
+  
+  if (data.foodDatabase.length === 0) {
+    list.innerHTML = '<div class="empty-state" style="padding: 20px;">No foods in database yet</div>';
+  } else {
+    list.innerHTML = data.foodDatabase.map(food => `
+      <div class="entry-item">
+        <div class="entry-content">
+          <div class="entry-title">${food.name}</div>
+          <div class="entry-details">${food.calories} cal • P: ${food.protein}g • C: ${food.carbs}g • F: ${food.fats}g</div>
+        </div>
+        <div class="entry-actions">
+          <button class="btn btn-danger btn-sm" onclick="deleteFromFoodDatabase(${food.id})">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// Update food form when selection changes
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize food date input to today
+  const foodDateInput = document.getElementById('food-date-input');
+  if (foodDateInput) {
+    foodDateInput.value = getDateString(new Date());
+    
+    // When date changes, update all Food tab displays
+    foodDateInput.addEventListener('change', function() {
+      applyPresetIfNeeded(this.value);
+      updateFoodStats();
+    });
+  }
+  
+  // Update grams display when grams input changes
+  const gramsInput = document.getElementById('food-grams');
+  if (gramsInput) {
+    gramsInput.addEventListener('input', function() {
+      document.getElementById('display-grams').textContent = this.value || '100';
+    });
+  }
+  
+  const foodSelect = document.getElementById('food-name');
+  foodSelect.addEventListener('change', function() {
+    const selectedId = parseInt(this.value);
+    if (selectedId) {
+      const food = data.foodDatabase.find(f => f.id === selectedId);
+      if (food) {
+        // Store base values (per 100g)
+        document.getElementById('food-calories-base').value = food.calories;
+        document.getElementById('food-protein-base').value = food.protein;
+        document.getElementById('food-carbs-base').value = food.carbs;
+        document.getElementById('food-fats-base').value = food.fats;
+        
+        // Display base values
+        document.getElementById('food-calories-display').textContent = food.calories;
+        document.getElementById('food-protein-display').textContent = food.protein;
+        document.getElementById('food-carbs-display').textContent = food.carbs;
+        document.getElementById('food-fats-display').textContent = food.fats;
+      }
+    } else {
+      document.getElementById('food-calories-base').value = '';
+      document.getElementById('food-protein-base').value = '';
+      document.getElementById('food-carbs-base').value = '';
+      document.getElementById('food-fats-base').value = '';
+      
+      document.getElementById('food-calories-display').textContent = '-';
+      document.getElementById('food-protein-display').textContent = '-';
+      document.getElementById('food-carbs-display').textContent = '-';
+      document.getElementById('food-fats-display').textContent = '-';
+    }
+  });
+  
+  // Initialize biometrics date input to today
+  const bioDateInput = document.getElementById('bio-date-input');
+  if (bioDateInput) {
+    bioDateInput.value = getDateString(new Date());
+    updateBiometricsDisplay();
+    
+    // Update display when date changes
+    bioDateInput.addEventListener('change', function() {
+      updateBiometricsDisplay();
+    });
+  }
+  
+  // Initialize workout date input to today
+  const workoutDateInput = document.getElementById('workout-date-input');
+  if (workoutDateInput) {
+    workoutDateInput.value = getDateString(new Date());
+    updateWorkoutDisplay();
+    
+    // Update display when date changes
+    workoutDateInput.addEventListener('change', function() {
+      updateWorkoutDisplay();
+    });
+  }
+  
+  // Initialize dashboard date input to today
+  const dashboardDateInput = document.getElementById('dashboard-date-input');
+  if (dashboardDateInput) {
+    dashboardDateInput.value = getDateString(new Date());
+    
+    // Update dashboard when date changes
+    dashboardDateInput.addEventListener('change', function() {
+      currentDate = new Date(this.value);
+      // Reset all chart-specific dates
+      chartDates = {
+        weekly: null,
+        burned: null,
+        deficit: null,
+        weight: null,
+        rhr: null,
+        hrv: null,
+        sleep: null
+      };
+      updateDashboard();
+      renderLists();
+    });
+  }
+  
+  // Add event listeners for prev/next day buttons
+  const prevDayBtn = document.getElementById('prev-day-btn');
+  const nextDayBtn = document.getElementById('next-day-btn');
+  
+  if (prevDayBtn) {
+    prevDayBtn.addEventListener('click', function() {
+      const current = new Date(currentDate);
+      current.setDate(current.getDate() - 1);
+      currentDate = current;
+      dashboardDateInput.value = getDateString(current);
+      // Reset all chart-specific dates
+      chartDates = {
+        weekly: null,
+        burned: null,
+        deficit: null,
+        weight: null,
+        rhr: null,
+        hrv: null,
+        sleep: null
+      };
+      updateDashboard();
+    });
+  }
+  
+  if (nextDayBtn) {
+    nextDayBtn.addEventListener('click', function() {
+      const current = new Date(currentDate);
+      current.setDate(current.getDate() + 1);
+      currentDate = current;
+      dashboardDateInput.value = getDateString(current);
+      // Reset all chart-specific dates
+      chartDates = {
+        weekly: null,
+        burned: null,
+        deficit: null,
+        weight: null,
+        rhr: null,
+        hrv: null,
+        sleep: null
+      };
+      updateDashboard();
+    });
+  }
+  
+  renderFoodDatabase();
+  
+  // Initialize everything after DOM is ready
+  try {
+    updateDashboard();
+    updateFoodStats();
+    renderLists();
+    console.log('✅ All displays updated successfully');
+  } catch (error) {
+    console.error('❌ Error during initialization:', error);
+    alert('Error loading app: ' + error.message + '\n\nPlease try opening in Safari first, then add to home screen.');
+  }
+});
+
+// Add food
+function addFood() {
+  const selectedId = parseInt(document.getElementById('food-name').value);
+  const dateInput = document.getElementById('food-date-input').value;
+  const grams = parseInt(document.getElementById('food-grams').value) || 100;
+  const meal = document.getElementById('food-meal').value;
+  
+  if (!selectedId) {
+    alert('Please select a food from the database');
+    return;
+  }
+  
+  if (!dateInput) {
+    alert('Please select a date');
+    return;
+  }
+  
+  const food = data.foodDatabase.find(f => f.id === selectedId);
+  if (!food) {
+    alert('Food not found in database');
+    return;
+  }
+  
+  // Calculate nutrition based on grams (food database values are per 100g)
+  const multiplier = grams / 100;
+  const calories = Math.round(food.calories * multiplier);
+  const protein = Math.round(food.protein * multiplier * 10) / 10;
+  const carbs = Math.round(food.carbs * multiplier * 10) / 10;
+  const fats = Math.round(food.fats * multiplier * 10) / 10;
+  
+  data.food.push({
+    id: Date.now(),
+    date: dateInput,
+    time: new Date().toTimeString().slice(0, 5),
+    name: `${food.name} (${grams}g)`,
+    calories,
+    protein,
+    carbs,
+    fats,
+    meal,
+    grams
+  });
+  
+  // Reset form
+  document.getElementById('food-name').value = '';
+  document.getElementById('food-grams').value = '100';
+  document.getElementById('display-grams').textContent = '100';
+  document.getElementById('food-calories-display').textContent = '-';
+  document.getElementById('food-protein-display').textContent = '-';
+  document.getElementById('food-carbs-display').textContent = '-';
+  document.getElementById('food-fats-display').textContent = '-';
+  
+  saveData();
+}
+
+// Save current day's food as preset
+function saveAsPreset() {
+  const dateInput = document.getElementById('food-date-input').value;
+  
+  if (!dateInput) {
+    alert('Please select a date first');
+    return;
+  }
+  
+  // Get all food entries for the selected date
+  const foodForDate = data.food.filter(f => f.date === dateInput);
+  
+  if (foodForDate.length === 0) {
+    alert('No food entries found for this date');
+    return;
+  }
+  
+  // Store preset in localStorage
+  try {
+    localStorage.setItem('foodPreset', JSON.stringify(foodForDate));
+    alert(`✅ Saved ${foodForDate.length} food entries as preset!\n\nThis will be applied to all future empty days.`);
+  } catch (e) {
+    console.error('Error saving preset:', e);
+    alert('❌ Could not save preset. Please make sure you have storage available.');
+  }
+}
+
+// Apply preset to a date (called when adding food to a new day)
+function applyPresetIfNeeded(targetDate) {
+  // Check if this date already has food entries
+  const existingFood = data.food.filter(f => f.date === targetDate);
+  if (existingFood.length > 0) {
+    return; // Don't apply preset if date already has food
+  }
+  
+  // Get saved preset
+  const presetStr = localStorage.getItem('foodPreset');
+  if (!presetStr) {
+    return; // No preset saved
+  }
+  
+  const preset = JSON.parse(presetStr);
+  
+  // Apply preset to this date
+  preset.forEach(food => {
+    data.food.push({
+      id: Date.now() + Math.random(),
+      date: targetDate,
+      time: food.time,
+      name: food.name,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fats: food.fats,
+      meal: food.meal,
+      grams: food.grams
+    });
+  });
+  
+  saveData();
+}
+
+// Update exercise name options based on exercise type
+function updateExerciseNameOptions() {
+  const type = document.getElementById('workout-type').value;
+  const nameGroup = document.getElementById('exercise-name-group');
+  const nameSelect = document.getElementById('workout-name');
+  const runFields = document.getElementById('run-fields');
+  
+  nameSelect.innerHTML = '<option value="">-- Select --</option>';
+  runFields.style.display = 'none';
+  
+  if (type === 'run') {
+    nameGroup.style.display = 'block';
+    nameSelect.innerHTML = `
+      <option value="">-- Select --</option>
+      <option value="Intervals">Intervals</option>
+      <option value="Threshold">Threshold</option>
+      <option value="Long run">Long run</option>
+    `;
+  } else if (type === 'strength') {
+    nameGroup.style.display = 'block';
+    nameSelect.innerHTML = `
+      <option value="">-- Select --</option>
+      <option value="Upper body">Upper body</option>
+      <option value="Lower body">Lower body</option>
+      <option value="Fullbody">Fullbody</option>
+    `;
+  } else if (type === 'walk') {
+    nameGroup.style.display = 'none';
+  } else {
+    nameGroup.style.display = 'none';
+  }
+}
+
+// Update run-specific fields based on exercise name
+function updateRunFields() {
+  const type = document.getElementById('workout-type').value;
+  const name = document.getElementById('workout-name').value;
+  const runFields = document.getElementById('run-fields');
+  const basicRunFields = document.getElementById('basic-run-fields');
+  const intervalsFields = document.getElementById('intervals-fields');
+  
+  if (type === 'run' && name) {
+    runFields.style.display = 'block';
+    
+    if (name === 'Intervals') {
+      basicRunFields.style.display = 'none';
+      intervalsFields.style.display = 'block';
+    } else if (name === 'Threshold' || name === 'Long run') {
+      basicRunFields.style.display = 'block';
+      intervalsFields.style.display = 'none';
+    }
+  } else {
+    runFields.style.display = 'none';
+    basicRunFields.style.display = 'none';
+    intervalsFields.style.display = 'none';
+  }
+}
+
+// Update workout display for selected date
+function updateWorkoutDisplay() {
+  const workoutDateInput = document.getElementById('workout-date-input');
+  if (!workoutDateInput) return;
+  
+  const selectedDate = workoutDateInput.value;
+  const dayWorkouts = data.workouts.filter(w => w.date === selectedDate);
+  
+  // Calculate totals
+  const totalDuration = dayWorkouts.reduce((sum, w) => sum + (w.duration || 0), 0);
+  const totalCalories = dayWorkouts.reduce((sum, w) => sum + (w.calories || 0), 0);
+  
+  document.getElementById('total-workout-duration').innerHTML = `${totalDuration}<span class="stat-unit">min</span>`;
+  document.getElementById('total-workout-calories').innerHTML = `${totalCalories}<span class="stat-unit">kcal</span>`;
+  
+  // Display workout list
+  const summaryList = document.getElementById('workout-summary-list');
+  if (dayWorkouts.length === 0) {
+    summaryList.innerHTML = '<div class="meal-empty">No workouts for this date</div>';
+  } else {
+    summaryList.innerHTML = dayWorkouts.map(w => {
+      let details = `${w.duration}min • ${w.calories}cal`;
+      
+      // Add run-specific details
+      if (w.type === 'run') {
+        if (w.name === 'Intervals' && w.intervalsSeries) {
+          details += `<br><span style="font-size: 10px; color: var(--text-secondary);">${w.intervalsSeries}x${w.intervalsCount} • ${w.intervalsDistance}km @ ${w.intervalsPace}</span>`;
+        } else if ((w.name === 'Threshold' || w.name === 'Long run') && w.distance) {
+          details += `<br><span style="font-size: 10px; color: var(--text-secondary);">${w.distance}km @ ${w.pace}</span>`;
+        }
+      }
+      
+      return `
+        <div class="meal-item">
+          <span class="meal-item-name">${w.type === 'walk' ? 'Walk' : w.name}</span>
+          <span class="meal-item-cals">${details}</span>
+          <button class="meal-item-delete" onclick="deleteEntry('workouts', ${w.id})" title="Delete">×</button>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+// Add workout
+function addWorkout() {
+  const dateInput = document.getElementById('workout-date-input').value;
+  const type = document.getElementById('workout-type').value;
+  const name = document.getElementById('workout-name').value;
+  const duration = parseInt(document.getElementById('workout-duration').value) || 0;
+  const calories = parseInt(document.getElementById('workout-calories').value) || 0;
+  const notes = document.getElementById('workout-notes').value;
+  
+  if (!dateInput) {
+    alert('Please select a date');
+    return;
+  }
+  
+  if (!type) {
+    alert('Please select an exercise type');
+    return;
+  }
+  
+  // For walk, name is not required
+  if (type !== 'walk' && !name) {
+    alert('Please select an exercise name');
+    return;
+  }
+  
+  // Build workout object
+  const workout = {
+    id: Date.now(),
+    date: dateInput,
+    time: new Date().toTimeString().slice(0, 5),
+    type,
+    name: type === 'walk' ? 'Walk' : name,
+    duration,
+    calories,
+    notes
+  };
+  
+  // Add run-specific data if it's a run
+  if (type === 'run') {
+    if (name === 'Intervals') {
+      workout.intervalsSeries = parseInt(document.getElementById('intervals-series').value) || null;
+      workout.intervalsCount = parseInt(document.getElementById('intervals-count').value) || null;
+      workout.intervalsDistance = parseFloat(document.getElementById('intervals-distance').value) || null;
+      workout.intervalsPace = document.getElementById('intervals-pace').value || null;
+    } else if (name === 'Threshold' || name === 'Long run') {
+      workout.distance = parseFloat(document.getElementById('run-distance').value) || null;
+      workout.pace = document.getElementById('run-pace').value || null;
+    }
+  }
+  
+  data.workouts.push(workout);
+  
+  // Reset form
+  document.getElementById('workout-type').value = '';
+  document.getElementById('workout-name').value = '';
+  document.getElementById('exercise-name-group').style.display = 'none';
+  document.getElementById('run-fields').style.display = 'none';
+  document.getElementById('workout-duration').value = '';
+  document.getElementById('workout-calories').value = '';
+  document.getElementById('workout-notes').value = '';
+  
+  // Clear run-specific fields
+  document.getElementById('run-distance').value = '';
+  document.getElementById('run-pace').value = '';
+  document.getElementById('intervals-series').value = '';
+  document.getElementById('intervals-count').value = '';
+  document.getElementById('intervals-distance').value = '';
+  document.getElementById('intervals-pace').value = '';
+  
+  saveData();
+  updateWorkoutDisplay();
+}
+
+// Add biometrics
+// Update biometrics display
+function updateBiometricsDisplay() {
+  const bioDateInput = document.getElementById('bio-date-input');
+  if (!bioDateInput) return;
+  
+  const selectedDate = bioDateInput.value;
+  const dayBio = data.biometrics.filter(b => b.date === selectedDate);
+  
+  // Get the most recent entry for this date (if multiple exist)
+  const latestBio = dayBio.length > 0 ? dayBio[dayBio.length - 1] : null;
+  
+  if (latestBio) {
+    document.getElementById('display-weight').innerHTML = latestBio.weight ? `${latestBio.weight}<span class="stat-unit">kg</span>` : '--<span class="stat-unit">kg</span>';
+    document.getElementById('display-hr').innerHTML = latestBio.hr ? `${latestBio.hr}<span class="stat-unit">bpm</span>` : '--<span class="stat-unit">bpm</span>';
+    document.getElementById('display-hrv').innerHTML = latestBio.hrv ? `${latestBio.hrv}<span class="stat-unit">ms</span>` : '--<span class="stat-unit">ms</span>';
+    document.getElementById('display-sleep').innerHTML = latestBio.sleep ? `${latestBio.sleep}<span class="stat-unit">/100</span>` : '--<span class="stat-unit">/100</span>';
+    document.getElementById('display-notes').textContent = latestBio.notes || 'No notes for this date';
+  } else {
+    document.getElementById('display-weight').innerHTML = '--<span class="stat-unit">kg</span>';
+    document.getElementById('display-hr').innerHTML = '--<span class="stat-unit">bpm</span>';
+    document.getElementById('display-hrv').innerHTML = '--<span class="stat-unit">ms</span>';
+    document.getElementById('display-sleep').innerHTML = '--<span class="stat-unit">/100</span>';
+    document.getElementById('display-notes').textContent = 'No notes for this date';
+  }
+}
+
+function addBiometrics() {
+  const dateInput = document.getElementById('bio-date-input').value;
+  
+  if (!dateInput) {
+    alert('Please select a date');
+    return;
+  }
+  
+  // Get input values
+  const weightValue = document.getElementById('bio-weight').value;
+  const hrValue = document.getElementById('bio-hr').value;
+  const hrvValue = document.getElementById('bio-hrv').value;
+  const sleepValue = document.getElementById('bio-sleep').value;
+  const notesValue = document.getElementById('bio-notes').value;
+  
+  // Find or create entry for this date
+  let entry = data.biometrics.find(b => b.date === dateInput);
+  
+  if (!entry) {
+    // Create new entry if doesn't exist
+    entry = {
+      id: Date.now(),
+      date: dateInput,
+      time: new Date().toTimeString().slice(0, 5),
+      weight: null,
+      hr: null,
+      hrv: null,
+      sleep: null,
+      notes: ''
+    };
+    data.biometrics.push(entry);
+  }
+  
+  // Update only the fields that have values
+  if (weightValue !== '') entry.weight = parseFloat(weightValue);
+  if (hrValue !== '') entry.hr = parseInt(hrValue);
+  if (hrvValue !== '') entry.hrv = parseInt(hrvValue);
+  if (sleepValue !== '') entry.sleep = parseInt(sleepValue);
+  if (notesValue !== '') entry.notes = notesValue;
+  
+  // Update time
+  entry.time = new Date().toTimeString().slice(0, 5);
+  
+  // Clear form
+  document.getElementById('bio-weight').value = '';
+  document.getElementById('bio-hr').value = '';
+  document.getElementById('bio-hrv').value = '';
+  document.getElementById('bio-sleep').value = '';
+  document.getElementById('bio-notes').value = '';
+  
+  // Save to localStorage
+  localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+  
+  // Update displays
+  updateBiometricsDisplay();
+  updateDashboard();
+}
+
+// Delete entry
+function deleteEntry(type, id) {
+  if (confirm('Delete this entry?')) {
+    // Handle both string and number IDs
+    data[type] = data[type].filter(item => item.id != id);
+    saveData();
+    // Refresh all displays
+    renderLists();
+    updateDashboard();
+    updateFoodStats();
+    updateBiometricsDisplay();
+  }
+}
+
+// Update dashboard
+function updateDashboard() {
+  renderWeeklyChart();
+  renderWeeklyBurnedChart();
+  renderDeficitChart();
+  renderWeightChart();
+  renderRHRChart();
+  renderHRVChart();
+  renderSleepChart();
+}
+
+// Update food stats
+let calChart, proteinChart, carbsChart, fatsChart;
+let dailyCaloriesChart, dailyMacrosChart;
+let chartDaysBack = 30; // Start at 30 to show most recent data (slider at max)
+
+function updateChartsBySlider(value) {
+  // Invert the slider: slider at max (30) should show oldest dates, slider at min (0) should show most recent
+  chartDaysBack = 30 - parseInt(value);
+  renderDailyCharts();
+}
+
+function updateFoodStats() {
+  // Get the selected date from the food date input
+  const foodDateInput = document.getElementById('food-date-input');
+  const selectedDateStr = foodDateInput ? foodDateInput.value : getDateString(new Date());
+  
+  // Show nutrition for the selected date
+  const dayFood = data.food.filter(f => f.date === selectedDateStr);
+  
+  const totalCal = dayFood.reduce((sum, f) => sum + f.calories, 0);
+  const totalProtein = dayFood.reduce((sum, f) => sum + f.protein, 0);
+  const totalCarbs = dayFood.reduce((sum, f) => sum + f.carbs, 0);
+  const totalFats = dayFood.reduce((sum, f) => sum + f.fats, 0);
+  
+  document.getElementById('total-calories').textContent = totalCal;
+  document.getElementById('total-protein').textContent = Math.round(totalProtein * 10) / 10;
+  document.getElementById('total-carbs').textContent = Math.round(totalCarbs * 10) / 10;
+  document.getElementById('total-fats').textContent = Math.round(totalFats * 10) / 10;
+  
+  // Update meal sections for the selected date
+  const meals = ['breakfast', 'lunch', 'snack', 'dinner'];
+  meals.forEach(meal => {
+    const mealList = document.getElementById(`${meal}-list`);
+    if (!mealList) return;
+    
+    const mealFood = dayFood.filter(f => f.meal === meal);
+    
+    if (mealFood.length === 0) {
+      mealList.innerHTML = '<div class="meal-empty">No items</div>';
+    } else {
+      // Calculate meal totals
+      const mealProtein = mealFood.reduce((sum, f) => sum + f.protein, 0);
+      const mealCarbs = mealFood.reduce((sum, f) => sum + f.carbs, 0);
+      const mealFats = mealFood.reduce((sum, f) => sum + f.fats, 0);
+      const mealCals = mealFood.reduce((sum, f) => sum + f.calories, 0);
+      
+      const itemsHtml = mealFood.map(f => `
+        <div class="meal-item">
+          <span class="meal-item-name">${f.name}</span>
+          <span class="meal-item-cals">${f.calories} cal</span>
+          <button class="meal-item-delete" onclick="deleteEntry('food', ${f.id})" title="Delete">×</button>
+        </div>
+      `).join('');
+      
+      const summaryHtml = `
+        <div style="margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--border); font-size: 10px; color: var(--text-secondary);">
+          ${Math.round(mealProtein * 10) / 10}g P / ${Math.round(mealCarbs * 10) / 10}g C / ${Math.round(mealFats * 10) / 10}g F • <span style="font-weight: 500; color: var(--text-primary);">${mealCals} cal</span>
+        </div>
+      `;
+      
+      mealList.innerHTML = itemsHtml + summaryHtml;
+    }
+  });
+  
+  // Create/update pie charts
+  const chartConfig = {
+    type: 'doughnut',
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: '70%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false }
+      }
+    }
+  };
+  
+  // Calories chart (target: 2100)
+  const calCtx = document.getElementById('cal-chart');
+  if (calCtx) {
+    if (calChart) calChart.destroy();
+    const calPct = Math.min((totalCal / 2100) * 100, 100);
+    calChart = new Chart(calCtx, {
+      ...chartConfig,
+      data: {
+        datasets: [{
+          data: [totalCal, Math.max(2100 - totalCal, 0)],
+          backgroundColor: ['#3266ad', '#e8e8e8'],
+          borderWidth: 0
+        }]
+      }
+    });
+  }
+  
+  // Protein chart (target: 150g)
+  const proteinCtx = document.getElementById('protein-chart');
+  if (proteinCtx) {
+    if (proteinChart) proteinChart.destroy();
+    proteinChart = new Chart(proteinCtx, {
+      ...chartConfig,
+      data: {
+        datasets: [{
+          data: [totalProtein, Math.max(150 - totalProtein, 0)],
+          backgroundColor: ['#639922', '#e8e8e8'],
+          borderWidth: 0
+        }]
+      }
+    });
+  }
+  
+  // Carbs chart (target: 262.5g)
+  const carbsCtx = document.getElementById('carbs-chart');
+  if (carbsCtx) {
+    if (carbsChart) carbsChart.destroy();
+    carbsChart = new Chart(carbsCtx, {
+      ...chartConfig,
+      data: {
+        datasets: [{
+          data: [totalCarbs, Math.max(262.5 - totalCarbs, 0)],
+          backgroundColor: ['#ef9f27', '#e8e8e8'],
+          borderWidth: 0
+        }]
+      }
+    });
+  }
+  
+  // Fats chart (target: 50g)
+  const fatsCtx = document.getElementById('fats-chart');
+  if (fatsCtx) {
+    if (fatsChart) fatsChart.destroy();
+    fatsChart = new Chart(fatsCtx, {
+      ...chartConfig,
+      data: {
+        datasets: [{
+          data: [totalFats, Math.max(50 - totalFats, 0)],
+          backgroundColor: ['#d85a30', '#e8e8e8'],
+          borderWidth: 0
+        }]
+      }
+    });
+  }
+  
+  // Create/update pie charts
+}
+
+function renderDailyCharts() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Calculate end date based on slider (slider at 0 = most recent)
+  const endDate = new Date(today);
+  endDate.setDate(endDate.getDate() - chartDaysBack);
+  
+  // Start date is 6 days before end date (7 days total)
+  const startDate = new Date(endDate);
+  startDate.setDate(startDate.getDate() - 6);
+  
+  const labels = [];
+  const calories = [];
+  const proteins = [];
+  const carbs = [];
+  const fats = [];
+  
+  // Build data for the visible range in chronological order
+  const current = new Date(startDate);
+  while (current <= endDate) {
+    const dateStr = getDateString(current);
+    // Format as DD.MM
+    const day = String(current.getDate()).padStart(2, '0');
+    const month = String(current.getMonth() + 1).padStart(2, '0');
+    labels.push(`${day}.${month}`);
+    
+    const dayFood = data.food.filter(f => f.date === dateStr);
+    calories.push(dayFood.reduce((sum, f) => sum + f.calories, 0));
+    proteins.push(Math.round(dayFood.reduce((sum, f) => sum + f.protein, 0) * 10) / 10);
+    carbs.push(Math.round(dayFood.reduce((sum, f) => sum + f.carbs, 0) * 10) / 10);
+    fats.push(Math.round(dayFood.reduce((sum, f) => sum + f.fats, 0) * 10) / 10);
+    
+    current.setDate(current.getDate() + 1);
+  }
+  
+  // Update date range display
+  const rangeEl = document.getElementById('chart-date-range');
+  if (rangeEl) {
+    const startDay = String(startDate.getDate()).padStart(2, '0');
+    const startMonth = String(startDate.getMonth() + 1).padStart(2, '0');
+    const endDay = String(endDate.getDate()).padStart(2, '0');
+    const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
+    rangeEl.textContent = `${startDay}.${startMonth} - ${endDay}.${endMonth}`;
+  }
+  
+  // Update slider labels
+  const sliderStartEl = document.getElementById('slider-start-date');
+  const sliderEndEl = document.getElementById('slider-end-date');
+  if (sliderStartEl && sliderEndEl) {
+    const sliderEnd = new Date(today);
+    const sliderStart = new Date(today);
+    sliderStart.setDate(sliderStart.getDate() - 30);
+    
+    const startDay = String(sliderStart.getDate()).padStart(2, '0');
+    const startMonth = String(sliderStart.getMonth() + 1).padStart(2, '0');
+    const endDay = String(sliderEnd.getDate()).padStart(2, '0');
+    const endMonth = String(sliderEnd.getMonth() + 1).padStart(2, '0');
+    
+    // Left label = oldest date, Right label = most recent date
+    sliderStartEl.textContent = `${startDay}.${startMonth}`;
+    sliderEndEl.textContent = `${endDay}.${endMonth}`;
+  }
+  
+  // Daily calories chart (0-3000 scale)
+  const calCtx = document.getElementById('daily-calories-chart');
+  if (calCtx) {
+    if (dailyCaloriesChart) dailyCaloriesChart.destroy();
+    
+    dailyCaloriesChart = new Chart(calCtx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Calories',
+          data: calories,
+          borderColor: '#3266ad',
+          backgroundColor: 'rgba(50, 102, 173, 0.1)',
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#3266ad',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { 
+            min: 0,
+            max: 3000,
+            ticks: {
+              stepSize: 500
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  // Daily macros chart (0-300 scale)
+  const macrosCtx = document.getElementById('daily-macros-chart');
+  if (macrosCtx) {
+    if (dailyMacrosChart) dailyMacrosChart.destroy();
+    
+    dailyMacrosChart = new Chart(macrosCtx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Protein',
+            data: proteins,
+            borderColor: '#639922',
+            backgroundColor: 'rgba(99, 153, 34, 0.1)',
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: '#639922',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+          },
+          {
+            label: 'Carbs',
+            data: carbs,
+            borderColor: '#ef9f27',
+            backgroundColor: 'rgba(239, 159, 39, 0.1)',
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: '#ef9f27',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+          },
+          {
+            label: 'Fats',
+            data: fats,
+            borderColor: '#d85a30',
+            backgroundColor: 'rgba(216, 90, 48, 0.1)',
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: '#d85a30',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { 
+            display: true,
+            position: 'top',
+            labels: {
+              boxWidth: 12,
+              font: { size: 11 }
+            }
+          }
+        },
+        scales: {
+          y: { 
+            min: 0,
+            max: 300,
+            ticks: {
+              stepSize: 50
+            }
+          }
+        }
+      }
+    });
+  }
+}
+
+// Render lists
+function renderLists() {
+  const dateStr = getDateString(currentDate);
+  
+  // Food lists by meal
+  const dayFood = data.food.filter(f => f.date === dateStr);
+  
+  const meals = ['breakfast', 'lunch', 'snack', 'dinner'];
+  meals.forEach(meal => {
+    const mealList = document.getElementById(`${meal}-list`);
+    const mealFood = dayFood.filter(f => f.meal === meal);
+    
+    if (mealFood.length === 0) {
+      mealList.innerHTML = '<div class="meal-empty">No items</div>';
+    } else {
+      // Calculate meal totals
+      const mealProtein = mealFood.reduce((sum, f) => sum + f.protein, 0);
+      const mealCarbs = mealFood.reduce((sum, f) => sum + f.carbs, 0);
+      const mealFats = mealFood.reduce((sum, f) => sum + f.fats, 0);
+      const mealCals = mealFood.reduce((sum, f) => sum + f.calories, 0);
+      
+      const itemsHtml = mealFood.map(f => `
+        <div class="meal-item">
+          <span class="meal-item-name">${f.name}</span>
+          <span class="meal-item-cals">${f.calories} cal</span>
+          <button class="meal-item-delete" onclick="deleteEntry('food', ${f.id})" title="Delete">×</button>
+        </div>
+      `).join('');
+      
+      const summaryHtml = `
+        <div style="margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--border); font-size: 10px; color: var(--text-secondary);">
+          ${Math.round(mealProtein * 10) / 10}g P / ${Math.round(mealCarbs * 10) / 10}g C / ${Math.round(mealFats * 10) / 10}g F • <span style="font-weight: 500; color: var(--text-primary);">${mealCals} cal</span>
+        </div>
+      `;
+      
+      mealList.innerHTML = itemsHtml + summaryHtml;
+    }
+  });
+  
+}
+
+// Charts
+let weeklyChart, weeklyBurnedChart, deficitChart, weightChart, rhrChart, hrvChart, sleepChart;
+
+function renderWeeklyChart(date) {
+  const ctx = document.getElementById('weekly-chart');
+  if (!ctx) return;
+  
+  const today = date || currentDate;
+  const labels = [];
+  const calories = [];
+  
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = getDateString(d);
+    
+    // Show date in DD.MM format instead of weekday
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    labels.push(`${day}.${month}`);
+    
+    const dayCal = data.food
+      .filter(f => f.date === dateStr)
+      .reduce((sum, f) => sum + f.calories, 0);
+    calories.push(dayCal);
+  }
+  
+  if (weeklyChart) weeklyChart.destroy();
+  
+  weeklyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Calories',
+        data: calories,
+        backgroundColor: '#3266ad'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          color: '#fff',
+          font: {
+            weight: 'bold',
+            size: 12
+          },
+          formatter: function(value) {
+            return value;
+          }
+        }
+      },
+      scales: {
+        y: { 
+          min: 0,
+          max: 3000,
+          ticks: {
+            autoSkip: false,
+            maxTicksLimit: 4,
+            callback: function(value) {
+              if (value === 0) return '0';
+              if (value === 1000) return '1 000';
+              if (value === 2000) return '2 000';
+              if (value === 3000) return '3 000';
+              return null;
+            }
+          },
+          afterBuildTicks: function(scale) {
+            scale.ticks = [
+              { value: 0, label: '0' },
+              { value: 1000, label: '1 000' },
+              { value: 2000, label: '2 000' },
+              { value: 3000, label: '3 000' }
+            ];
+            return;
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderWeeklyBurnedChart(date) {
+  const ctx = document.getElementById('weekly-burned-chart');
+  if (!ctx) return;
+  
+  const today = date || currentDate;
+  const labels = [];
+  const burnedCals = [];
+  
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = getDateString(d);
+    
+    // Format: DD.MM
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    labels.push(`${day}.${month}`);
+    
+    // Get active calories for this date
+    const dayBio = data.biometrics.filter(b => b.date === dateStr && b.activeCalories);
+    if (dayBio.length > 0) {
+      burnedCals.push(dayBio[dayBio.length - 1].activeCalories);
+    } else {
+      burnedCals.push(0);
+    }
+  }
+  
+  if (weeklyBurnedChart) weeklyBurnedChart.destroy();
+  
+  weeklyBurnedChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Active Calories',
+        data: burnedCals,
+        backgroundColor: '#ff6b6b',
+        borderColor: '#ff6b6b',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          color: '#fff',
+          font: {
+            weight: 'bold',
+            size: 12
+          },
+          formatter: function(value) {
+            return value;
+          }
+        }
+      },
+      scales: {
+        y: { 
+          min: 0,
+          max: 3000,
+          ticks: {
+            autoSkip: false,
+            maxTicksLimit: 4,
+            callback: function(value) {
+              if (value === 0) return '0';
+              if (value === 1000) return '1 000';
+              if (value === 2000) return '2 000';
+              if (value === 3000) return '3 000';
+              return null;
+            }
+          },
+          afterBuildTicks: function(scale) {
+            scale.ticks = [
+              { value: 0, label: '0' },
+              { value: 1000, label: '1 000' },
+              { value: 2000, label: '2 000' },
+              { value: 3000, label: '3 000' }
+            ];
+            return;
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderDeficitChart(date) {
+  const ctx = document.getElementById('deficit-chart');
+  if (!ctx) return;
+  
+  const today = date || currentDate;
+  const labels = [];
+  const surplusData = [];
+  
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = getDateString(d);
+    
+    // Format: DD.MM
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    labels.push(`${day}.${month}`);
+    
+    // Calculate surplus = Food Intake - (Basal + Active)
+    // Positive = surplus (eating more), Negative = deficit (eating less)
+    const dayBio = data.biometrics.filter(b => b.date === dateStr);
+    const dayFood = data.food.filter(f => f.date === dateStr);
+    
+    if (dayBio.length > 0) {
+      const bio = dayBio[dayBio.length - 1];
+      const basalCal = bio.basalCalories || 0;
+      const activeCal = bio.activeCalories || 0;
+      const tdee = basalCal + activeCal;
+      
+      // Sum all food calories for the day
+      const foodIntake = dayFood.reduce((sum, f) => sum + (f.calories || 0), 0);
+      
+      const surplus = foodIntake - tdee;
+      surplusData.push(surplus);
+    } else {
+      surplusData.push(0);
+    }
+  }
+  
+  if (deficitChart) deficitChart.destroy();
+  
+  deficitChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Surplus/Deficit',
+        data: surplusData,
+        backgroundColor: surplusData.map(d => d >= 0 ? '#ff6b6b' : '#51cf66'),
+        borderColor: surplusData.map(d => d >= 0 ? '#ff6b6b' : '#51cf66'),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end',
+          align: function(context) {
+            return context.dataset.data[context.dataIndex] >= 0 ? 'top' : 'bottom';
+          },
+          color: '#fff',
+          font: {
+            weight: 'bold',
+            size: 12
+          },
+          formatter: function(value) {
+            return value;
+          }
+        }
+      },
+      scales: {
+        y: { 
+          min: -1500,
+          max: 1000,
+          ticks: {
+            autoSkip: false,
+            maxTicksLimit: 3,
+            callback: function(value) {
+              if (value === -1500) return '-1 500';
+              if (value === 0) return '0';
+              if (value === 1000) return '1 000';
+              return null;
+            }
+          },
+          afterBuildTicks: function(scale) {
+            scale.ticks = [
+              { value: -1500, label: '-1 500' },
+              { value: 0, label: '0' },
+              { value: 1000, label: '1 000' }
+            ];
+            return;
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderWeightChart(date) {
+  const ctx = document.getElementById('weight-chart');
+  if (!ctx) return;
+  
+  const today = date || currentDate;
+  const labels = [];
+  const weights = [];
+  
+  for (let i = 34; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = getDateString(d);
+    
+    // Show date every 7 days: days 0, 7, 14, 21, 28, 34 from the start
+    const dayFromStart = 34 - i;
+    if (dayFromStart % 7 === 0 || i === 0) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      labels.push(`${day}.${month}`);
+    } else {
+      labels.push('');
+    }
+    
+    const dayBio = data.biometrics.filter(b => b.date === dateStr && b.weight);
+    if (dayBio.length > 0) {
+      weights.push(dayBio[dayBio.length - 1].weight);
+    } else {
+      weights.push(null);
+    }
+  }
+  
+  if (weightChart) weightChart.destroy();
+  
+  weightChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Weight (kg)',
+        data: weights,
+        borderColor: '#639922',
+        backgroundColor: 'rgba(99, 153, 34, 0.1)',
+        tension: 0.4,
+        spanGaps: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: {
+            autoSkip: false,
+            maxRotation: 0,
+            minRotation: 0
+          }
+        },
+        y: { 
+          beginAtZero: false,
+          ticks: {
+            callback: function(value) {
+              return value.toFixed(1);
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderRHRChart(date) {
+  const ctx = document.getElementById('rhr-chart');
+  if (!ctx) return;
+  
+  const today = date || currentDate;
+  const labels = [];
+  const rhrData = [];
+  
+  for (let i = 34; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = getDateString(d);
+    
+    // Show date every 7 days: days 0, 7, 14, 21, 28, 34 from the start
+    const dayFromStart = 34 - i;
+    if (dayFromStart % 7 === 0 || i === 0) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      labels.push(`${day}.${month}`);
+    } else {
+      labels.push('');
+    }
+    
+    const dayBio = data.biometrics.filter(b => b.date === dateStr && b.hr);
+    if (dayBio.length > 0) {
+      rhrData.push(dayBio[dayBio.length - 1].hr);
+    } else {
+      rhrData.push(null);
+    }
+  }
+  
+  if (rhrChart) rhrChart.destroy();
+  
+  rhrChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'RHR (bpm)',
+        data: rhrData,
+        borderColor: '#ff6b6b',
+        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+        borderWidth: 2,
+        pointRadius: 2,
+        pointBackgroundColor: '#ff6b6b',
+        tension: 0.4,
+        spanGaps: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: {
+            autoSkip: false,
+            maxRotation: 0,
+            minRotation: 0
+          }
+        },
+        y: { 
+          beginAtZero: false,
+          min: 40,
+          max: 70
+        }
+      }
+    }
+  });
+}
+
+function renderHRVChart(date) {
+  const ctx = document.getElementById('hrv-chart');
+  if (!ctx) return;
+  
+  const today = date || currentDate;
+  const labels = [];
+  const hrvData = [];
+  
+  for (let i = 34; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = getDateString(d);
+    
+    // Show date every 7 days: days 0, 7, 14, 21, 28, 34 from the start
+    const dayFromStart = 34 - i;
+    if (dayFromStart % 7 === 0 || i === 0) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      labels.push(`${day}.${month}`);
+    } else {
+      labels.push('');
+    }
+    
+    const dayBio = data.biometrics.filter(b => b.date === dateStr && b.hrv);
+    if (dayBio.length > 0) {
+      hrvData.push(dayBio[dayBio.length - 1].hrv);
+    } else {
+      hrvData.push(null);
+    }
+  }
+  
+  if (hrvChart) hrvChart.destroy();
+  
+  hrvChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'HRV (ms)',
+        data: hrvData,
+        borderColor: '#4ecdc4',
+        backgroundColor: 'rgba(78, 205, 196, 0.1)',
+        borderWidth: 2,
+        pointRadius: 2,
+        pointBackgroundColor: '#4ecdc4',
+        tension: 0.4,
+        spanGaps: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: {
+            autoSkip: false,
+            maxRotation: 0,
+            minRotation: 0
+          }
+        },
+        y: { 
+          beginAtZero: true,
+          min: 0,
+          max: 100
+        }
+      }
+    }
+  });
+}
+
+function renderSleepChart(date) {
+  const ctx = document.getElementById('sleep-chart');
+  if (!ctx) return;
+  
+  const today = date || currentDate;
+  const labels = [];
+  const sleepData = [];
+  
+  for (let i = 34; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = getDateString(d);
+    
+    // Show date every 7 days: days 0, 7, 14, 21, 28, 34 from the start
+    const dayFromStart = 34 - i;
+    if (dayFromStart % 7 === 0 || i === 0) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      labels.push(`${day}.${month}`);
+    } else {
+      labels.push('');
+    }
+    
+    const dayBio = data.biometrics.filter(b => b.date === dateStr && b.sleep);
+    if (dayBio.length > 0) {
+      sleepData.push(dayBio[dayBio.length - 1].sleep);
+    } else {
+      sleepData.push(null);
+    }
+  }
+  
+  if (sleepChart) sleepChart.destroy();
+  
+  sleepChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Sleep Score',
+        data: sleepData,
+        borderColor: '#9b59b6',
+        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+        borderWidth: 2,
+        pointRadius: 2,
+        pointBackgroundColor: '#9b59b6',
+        tension: 0.4,
+        spanGaps: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: {
+            autoSkip: false,
+            maxRotation: 0,
+            minRotation: 0
+          }
+        },
+        y: { 
+          beginAtZero: true,
+          min: 0,
+          max: 100
+        }
+      }
+    }
+  });
+}
+
+// Export data
+function exportData() {
+  const dataStr = JSON.stringify(data, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const filename = `fitness-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  // Show success message
+  const statusEl = document.getElementById('export-status');
+  if (statusEl) {
+    statusEl.textContent = `✅ Data exported: ${filename}`;
+    statusEl.style.display = 'block';
+    statusEl.style.background = 'var(--success-light)';
+    statusEl.style.color = 'var(--success)';
+    setTimeout(() => {
+      statusEl.style.display = 'none';
+    }, 4000);
+  }
+}
+
+// Import data
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const statusEl = document.getElementById('export-status');
+  
+  // Confirm before importing
+  if (!confirm('⚠️ Import will replace ALL current data.\n\nMake sure you have exported a backup first!\n\nContinue?')) {
+    event.target.value = ''; // Reset file input
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      
+      // Validate imported data structure
+      if (!importedData.food || !importedData.workouts || !importedData.biometrics) {
+        throw new Error('Invalid data format');
+      }
+      
+      // Replace current data
+      data = importedData;
+      
+      // Save to localStorage (use correct key!)
+      localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+      
+      // Show success message
+      if (statusEl) {
+        statusEl.textContent = `✅ Data imported! ${importedData.food.length} meals, ${importedData.workouts.length} workouts, ${importedData.biometrics.length} records.`;
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'var(--success-light)';
+        statusEl.style.color = 'var(--success)';
+      }
+      
+      // Reload the page to refresh all charts and displays
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+      
+    } catch (error) {
+      if (statusEl) {
+        statusEl.textContent = `❌ Import failed: ${error.message}`;
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'var(--danger-light)';
+        statusEl.style.color = 'var(--danger)';
+      }
+      console.error('Import error:', error);
+    }
+    
+    // Reset file input
+    event.target.value = '';
+  };
+  
+  reader.readAsText(file);
+}
+
+// ===== APPLE HEALTH / iOS SHORTCUTS INTEGRATION =====
+
+// Trigger iOS Shortcut to sync Apple Health data
+function syncAppleHealth() {
+  const statusEl = document.getElementById('export-status');
+  
+  // Check if on iOS
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  
+  if (!isIOS) {
+    showHealthSyncStatus('ℹ️ Apple Health sync only works on iPhone/iPad', 'error');
+    return;
+  }
+  
+  // Show "syncing" status
+  showHealthSyncStatus('🔄 Opening Apple Health sync... Please wait', 'info');
+  
+  // Trigger the iOS Shortcut via URL scheme
+  // Name of Shortcut: "FitnessTrackerSync" (must match what user creates)
+  const shortcutName = 'FitnessTrackerSync';
+  const shortcutURL = `shortcuts://run-shortcut?name=${encodeURIComponent(shortcutName)}`;
+  
+  // Try to open the shortcut
+  window.location.href = shortcutURL;
+  
+  // Show instruction after 2 seconds if nothing happened
+  setTimeout(() => {
+    showHealthSyncStatus('⚠️ If nothing happened, create the "FitnessTrackerSync" Shortcut first (see instructions)', 'error');
+  }, 3000);
+}
+
+// Handle URL parameters from iOS Shortcuts
+function checkAppleHealthSync() {
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  if (urlParams.has('healthData')) {
+    try {
+      const healthDataJSON = decodeURIComponent(urlParams.get('healthData'));
+      const healthData = JSON.parse(healthDataJSON);
+      processAppleHealthData(healthData);
+      
+      // Clean URL after processing (remove query params)
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (error) {
+      console.error('Error processing health data:', error);
+      showHealthSyncStatus('❌ Failed to import health data: ' + error.message, 'error');
+    }
+  }
+}
+
+// Process Apple Health data from Shortcuts
+function processAppleHealthData(healthData) {
+  const date = healthData.date || getDateString(new Date());
+  let updatedFields = [];
+  
+  // Find or create biometrics entry for this date
+  let bioEntry = data.biometrics.find(b => b.date === date);
+  if (!bioEntry) {
+    bioEntry = { date, weight: null, hr: null, hrv: null, sleep: null, notes: 'Auto-synced from Apple Health' };
+    data.biometrics.push(bioEntry);
+  }
+  
+  // Update biometrics data
+  if (healthData.weight && !isNaN(parseFloat(healthData.weight))) {
+    bioEntry.weight = parseFloat(healthData.weight);
+    updatedFields.push('Weight');
+  }
+  if (healthData.rhr && !isNaN(parseInt(healthData.rhr))) {
+    bioEntry.hr = parseInt(healthData.rhr);
+    updatedFields.push('RHR');
+  }
+  if (healthData.hrv && !isNaN(parseInt(healthData.hrv))) {
+    bioEntry.hrv = parseInt(healthData.hrv);
+    updatedFields.push('HRV');
+  }
+  if (healthData.sleepScore && !isNaN(parseInt(healthData.sleepScore))) {
+    bioEntry.sleep = parseInt(healthData.sleepScore);
+    updatedFields.push('Sleep');
+  }
+  if (healthData.basalCalories && !isNaN(parseInt(healthData.basalCalories))) {
+    bioEntry.basalCalories = parseInt(healthData.basalCalories);
+    updatedFields.push('Basal Cal');
+  }
+  if (healthData.activeCalories && !isNaN(parseInt(healthData.activeCalories))) {
+    bioEntry.activeCalories = parseInt(healthData.activeCalories);
+    updatedFields.push('Active Cal');
+  }
+  
+  // Add workouts if provided
+  if (healthData.workouts && Array.isArray(healthData.workouts)) {
+    healthData.workouts.forEach(workout => {
+      // Check if this workout already exists
+      const exists = data.workouts.some(w => 
+        w.date === date && 
+        w.type === workout.type && 
+        w.duration === workout.duration
+      );
+      
+      if (!exists) {
+        data.workouts.push({
+          id: Date.now() + Math.random(),
+          date,
+          type: workout.type || 'Other',
+          duration: parseInt(workout.duration) || 0,
+          calories: parseInt(workout.calories) || 0,
+          notes: workout.notes || 'Auto-synced from Apple Health'
+        });
+        updatedFields.push(`Workout: ${workout.type}`);
+      }
+    });
+  }
+  
+  // Save to localStorage
+  localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+  
+  // Show success message
+  if (updatedFields.length > 0) {
+    showHealthSyncStatus(`✅ Apple Health synced! Updated for ${date}: ${updatedFields.join(', ')}`, 'success');
+  } else {
+    showHealthSyncStatus(`ℹ️ Apple Health sync completed (no new data)`, 'success');
+  }
+  
+  // Refresh displays after a short delay
+  setTimeout(() => {
+    updateDashboard();
+    updateFoodStats();
+    renderLists();
+    if (typeof updateBiometricsDisplay === 'function') {
+      updateBiometricsDisplay();
+    }
+  }, 500);
+}
+
+// Show health sync status message
+function showHealthSyncStatus(message, type) {
+  const statusEl = document.getElementById('export-status');
+  if (statusEl) {
+    statusEl.textContent = message;
+    statusEl.style.display = 'block';
+    if (type === 'success') {
+      statusEl.style.background = 'var(--success-light)';
+      statusEl.style.color = 'var(--success)';
+    } else if (type === 'error') {
+      statusEl.style.background = 'var(--danger-light)';
+      statusEl.style.color = 'var(--danger)';
+    } else {
+      // info
+      statusEl.style.background = 'var(--primary-light)';
+      statusEl.style.color = 'var(--primary)';
+    }
+    setTimeout(() => {
+      statusEl.style.display = 'none';
+    }, 8000);
+  }
+}
+
+// Check for Apple Health sync when page loads
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', checkAppleHealthSync);
+} else {
+  // Document already loaded
+  setTimeout(checkAppleHealthSync, 500);
+}
+</script>
+</body>
+</html>
