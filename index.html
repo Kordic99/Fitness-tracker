@@ -808,6 +808,8 @@ canvas {
       <button onclick="exportData()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; white-space: nowrap;">📤 Export</button>
       <button onclick="document.getElementById('import-file').click()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: var(--success); color: white; border: none; border-radius: 4px; white-space: nowrap;">📥 Import</button>
       <button onclick="syncAppleHealth()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: var(--warning); color: white; border: none; border-radius: 4px; white-space: nowrap;">🔄 Sync</button>
+      <button onclick="manualCloudSync()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: #6f42c1; color: white; border: none; border-radius: 4px; white-space: nowrap;">☁️ Push</button>
+      <button onclick="syncFromCloud()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: #17a2b8; color: white; border: none; border-radius: 4px; white-space: nowrap;">⬇️ Pull</button>
       <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(event)">
     </div>
     
@@ -1258,7 +1260,24 @@ canvas {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ===== SUPABASE CLOUD SYNC =====
+const SUPABASE_URL = 'https://whxntdeuxljvimxufqkg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndoeG50ZGV1eGxqdmlteHVmcWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQ4ODMsImV4cCI6MjA5MjY0MDg4M30.0Hw8pBPjRSEgXPlz83LxIAeGuMbOwlpsdBjdv5jicsc';
+
+// Initialize Supabase client
+let supabaseClient = null;
+let cloudSyncEnabled = false;
+
+if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  cloudSyncEnabled = true;
+  console.log('✅ Supabase initialized');
+} else {
+  console.warn('⚠️ Supabase library not loaded, using localStorage only');
+}
+
 let currentDate = new Date();
 // Store individual dates for each chart (if they differ from main currentDate)
 let chartDates = {
@@ -1319,7 +1338,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-04-23-v44-hrvScale100';
+    const LAST_UPDATE = '2026-04-25-v46-supabaseFixNaming';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -1381,19 +1400,260 @@ function checkLocalStorage() {
   }
 }
 
-// Save data to localStorage
+// Save data to localStorage AND sync to cloud
 function saveData() {
   try {
     localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
     updateDashboard();
     updateFoodStats();
     renderLists();
+    
+    // Sync to cloud in background
+    if (cloudSyncEnabled) {
+      syncToCloud().catch(err => console.error('Cloud sync error:', err));
+    }
   } catch (e) {
     console.error('Cannot save to localStorage:', e);
     // Still update displays even if save fails
     updateDashboard();
     updateFoodStats();
     renderLists();
+  }
+}
+
+// ===== CLOUD SYNC FUNCTIONS =====
+
+// Convert local data format to Supabase format
+function toSupabaseBio(b) {
+  return {
+    date: b.date,
+    time: b.time || null,
+    weight: b.weight !== undefined ? b.weight : null,
+    hr: b.hr !== undefined ? b.hr : null,
+    hrv: b.hrv !== undefined ? b.hrv : null,
+    sleep: b.sleep !== undefined ? b.sleep : null,
+    active_calories: b.activeCalories || 0,
+    basal_calories: b.basalCalories || 0,
+    notes: b.notes || ''
+  };
+}
+
+function toSupabaseFood(f) {
+  return {
+    date: f.date,
+    time: f.time || null,
+    name: f.name || f.food || 'Unknown',
+    meal: f.meal || null,
+    grams: f.grams || 0,
+    calories: f.calories || 0,
+    protein: f.protein || 0,
+    carbs: f.carbs || 0,
+    fats: f.fats || 0
+  };
+}
+
+function toSupabaseWorkout(w) {
+  return {
+    date: w.date,
+    time: w.time || null,
+    type: w.type,
+    duration: w.duration || 0,
+    calories: w.calories || 0,
+    notes: w.notes || ''
+  };
+}
+
+function toSupabaseFoodDB(f) {
+  return {
+    name: f.name,
+    calories_per_100g: f.calories || 0,
+    protein_per_100g: f.protein || 0,
+    carbs_per_100g: f.carbs || 0,
+    fats_per_100g: f.fats || 0
+  };
+}
+
+// Convert Supabase format back to local
+function fromSupabaseBio(b) {
+  return {
+    id: b.id,
+    date: b.date,
+    time: b.time,
+    weight: b.weight,
+    hr: b.hr,
+    hrv: b.hrv,
+    sleep: b.sleep,
+    activeCalories: b.active_calories,
+    basalCalories: b.basal_calories,
+    notes: b.notes || ''
+  };
+}
+
+function fromSupabaseFood(f) {
+  return {
+    id: f.id,
+    date: f.date,
+    time: f.time,
+    name: f.name,
+    meal: f.meal,
+    grams: f.grams,
+    calories: f.calories,
+    protein: f.protein,
+    carbs: f.carbs,
+    fats: f.fats
+  };
+}
+
+function fromSupabaseWorkout(w) {
+  return {
+    id: w.id,
+    date: w.date,
+    time: w.time,
+    type: w.type,
+    duration: w.duration,
+    calories: w.calories,
+    notes: w.notes || ''
+  };
+}
+
+function fromSupabaseFoodDB(f) {
+  return {
+    id: f.id,
+    name: f.name,
+    calories: f.calories_per_100g,
+    protein: f.protein_per_100g,
+    carbs: f.carbs_per_100g,
+    fats: f.fats_per_100g
+  };
+}
+
+// Show sync status
+function showSyncStatus(message, type) {
+  const statusEl = document.getElementById('export-status');
+  if (statusEl) {
+    statusEl.textContent = message;
+    statusEl.style.display = 'block';
+    if (type === 'success') {
+      statusEl.style.background = '#d4edda';
+      statusEl.style.color = '#155724';
+    } else if (type === 'error') {
+      statusEl.style.background = '#f8d7da';
+      statusEl.style.color = '#721c24';
+    } else {
+      statusEl.style.background = '#cce5ff';
+      statusEl.style.color = '#004085';
+    }
+    setTimeout(() => {
+      statusEl.style.display = 'none';
+    }, 4000);
+  }
+}
+
+// Push all local data to cloud (overwrites cloud)
+async function syncToCloud() {
+  if (!supabaseClient) return false;
+  
+  try {
+    // Clear and replace all data in cloud
+    await supabaseClient.from('biometrics').delete().neq('id', 0);
+    await supabaseClient.from('food_entries').delete().neq('id', 0);
+    await supabaseClient.from('workouts').delete().neq('id', 0);
+    await supabaseClient.from('food_database').delete().neq('id', 0);
+    
+    // Insert biometrics
+    if (data.biometrics.length > 0) {
+      const bios = data.biometrics.map(toSupabaseBio);
+      const { error } = await supabaseClient.from('biometrics').insert(bios);
+      if (error) throw error;
+    }
+    
+    // Insert food entries
+    if (data.food.length > 0) {
+      const foods = data.food.map(toSupabaseFood);
+      const { error } = await supabaseClient.from('food_entries').insert(foods);
+      if (error) throw error;
+    }
+    
+    // Insert workouts
+    if (data.workouts.length > 0) {
+      const workouts = data.workouts.map(toSupabaseWorkout);
+      const { error } = await supabaseClient.from('workouts').insert(workouts);
+      if (error) throw error;
+    }
+    
+    // Insert food database
+    if (data.foodDatabase.length > 0) {
+      const foodDBs = data.foodDatabase.map(toSupabaseFoodDB);
+      const { error } = await supabaseClient.from('food_database').insert(foodDBs);
+      if (error) throw error;
+    }
+    
+    console.log('✅ Synced to cloud');
+    return true;
+  } catch (error) {
+    console.error('❌ Cloud sync error:', error);
+    return false;
+  }
+}
+
+// Pull data from cloud (overwrites local)
+async function syncFromCloud() {
+  if (!supabaseClient) {
+    showSyncStatus('❌ Cloud sync not available', 'error');
+    return false;
+  }
+  
+  try {
+    showSyncStatus('🔄 Loading from cloud...', 'info');
+    
+    // Fetch all tables in parallel
+    const [biosRes, foodsRes, workoutsRes, foodDBsRes] = await Promise.all([
+      supabaseClient.from('biometrics').select('*').order('date'),
+      supabaseClient.from('food_entries').select('*').order('date'),
+      supabaseClient.from('workouts').select('*').order('date'),
+      supabaseClient.from('food_database').select('*')
+    ]);
+    
+    if (biosRes.error) throw biosRes.error;
+    if (foodsRes.error) throw foodsRes.error;
+    if (workoutsRes.error) throw workoutsRes.error;
+    if (foodDBsRes.error) throw foodDBsRes.error;
+    
+    // Convert to local format
+    data.biometrics = biosRes.data.map(fromSupabaseBio);
+    data.food = foodsRes.data.map(fromSupabaseFood);
+    data.workouts = workoutsRes.data.map(fromSupabaseWorkout);
+    data.foodDatabase = foodDBsRes.data.map(fromSupabaseFoodDB);
+    
+    // Save to localStorage
+    localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+    
+    // Update displays
+    updateDashboard();
+    updateFoodStats();
+    renderLists();
+    if (typeof updateBiometricsDisplay === 'function') {
+      updateBiometricsDisplay();
+    }
+    
+    showSyncStatus(`✅ Loaded from cloud: ${data.biometrics.length} bio, ${data.food.length} food, ${data.workouts.length} workouts`, 'success');
+    console.log('✅ Loaded from cloud');
+    return true;
+  } catch (error) {
+    console.error('❌ Cloud load error:', error);
+    showSyncStatus(`❌ Cloud load error: ${error.message}`, 'error');
+    return false;
+  }
+}
+
+// Manual cloud sync (button click)
+async function manualCloudSync() {
+  showSyncStatus('🔄 Syncing to cloud...', 'info');
+  const success = await syncToCloud();
+  if (success) {
+    showSyncStatus('✅ Synced to cloud!', 'success');
+  } else {
+    showSyncStatus('❌ Cloud sync failed', 'error');
   }
 }
 
