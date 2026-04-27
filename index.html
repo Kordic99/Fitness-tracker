@@ -807,7 +807,6 @@ canvas {
       <!-- Small Export/Import buttons -->
       <button onclick="exportData()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; white-space: nowrap;">📤 Export</button>
       <button onclick="document.getElementById('import-file').click()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: var(--success); color: white; border: none; border-radius: 4px; white-space: nowrap;">📥 Import</button>
-      <button onclick="syncAppleHealth()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: var(--warning); color: white; border: none; border-radius: 4px; white-space: nowrap;">🔄 Sync</button>
       <button onclick="manualCloudSync()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: #6f42c1; color: white; border: none; border-radius: 4px; white-space: nowrap;">☁️ Push</button>
       <button onclick="syncFromCloud()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: #17a2b8; color: white; border: none; border-radius: 4px; white-space: nowrap;">⬇️ Pull</button>
       <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(event)">
@@ -1338,7 +1337,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-04-25-v46-supabaseFixNaming';
+    const LAST_UPDATE = '2026-04-25-v47-removeSyncButton';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
