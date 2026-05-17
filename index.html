@@ -1337,7 +1337,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-04-25-v47-removeSyncButton';
+    const LAST_UPDATE = '2026-05-05-v48-newDataMay';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -2285,6 +2285,186 @@ workoutsNew.forEach(entry => {
     w.notes === entry.details
   );
   
+  if (!exists) {
+    data.workouts.push({
+      id: Date.now() + Math.random(),
+      date: entry.date,
+      time: '18:00',
+      type: entry.type,
+      duration: 0,
+      calories: 0,
+      notes: entry.details
+    });
+  }
+});
+
+localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+
+// ===== NEW DATA: April 24 - May 5, 2026 =====
+
+// Weight (manual)
+const weightDataNew2 = [
+  { date: '2026-04-25', weight: 73.2 },
+  { date: '2026-04-26', weight: 72.8 },
+  { date: '2026-04-27', weight: 72.8 },
+  { date: '2026-04-28', weight: 73.1 },
+  { date: '2026-04-29', weight: 72.8 },
+  { date: '2026-04-30', weight: 73.6 },
+  { date: '2026-05-01', weight: 72.8 },
+  { date: '2026-05-02', weight: 72.9 },
+  { date: '2026-05-03', weight: 73.0 },
+  { date: '2026-05-04', weight: 73.2 },
+  { date: '2026-05-05', weight: 73.1 }
+];
+
+// RHR & HRV (merged - manual + Apple Health, outliers >150 skipped)
+const rhrHrvNew2 = [
+  { date: '2026-04-24', rhr: 47, hrv: 36 },
+  { date: '2026-04-25', rhr: 45, hrv: 48 },
+  { date: '2026-04-26', rhr: 44, hrv: 36 },
+  { date: '2026-04-27', rhr: 48, hrv: 36 },
+  { date: '2026-04-28', rhr: 48, hrv: 39 },
+  { date: '2026-04-29', rhr: 48, hrv: 35 },
+  { date: '2026-04-30', rhr: 48, hrv: 32 },
+  { date: '2026-05-01', rhr: 48, hrv: 53 },
+  { date: '2026-05-02', rhr: 47, hrv: 54 },
+  { date: '2026-05-03', rhr: 47, hrv: 52 },
+  { date: '2026-05-04', rhr: 49, hrv: 80 },
+  { date: '2026-05-05', rhr: 47, hrv: 54 }
+];
+
+// Sleep (manual)
+const sleepDataNew2 = [
+  { date: '2026-04-25', sleep: 70 },
+  { date: '2026-04-26', sleep: 94 },
+  { date: '2026-04-27', sleep: 92 },
+  { date: '2026-04-28', sleep: 88 },
+  { date: '2026-04-29', sleep: 79 },
+  { date: '2026-04-30', sleep: 94 },
+  { date: '2026-05-01', sleep: 97 },
+  { date: '2026-05-02', sleep: 91 },
+  { date: '2026-05-03', sleep: 94 },
+  { date: '2026-05-04', sleep: 86 },
+  { date: '2026-05-05', sleep: 97 }
+];
+
+// Active calories (Apple Health)
+const activeCaloriesNew2 = [
+  { date: '2026-04-24', calories: 377 },
+  { date: '2026-04-25', calories: 1285 },
+  { date: '2026-04-26', calories: 389 },
+  { date: '2026-04-27', calories: 1290 },
+  { date: '2026-04-28', calories: 1089 },
+  { date: '2026-04-29', calories: 314 },
+  { date: '2026-04-30', calories: 1208 },
+  { date: '2026-05-01', calories: 1419 },
+  { date: '2026-05-02', calories: 539 },
+  { date: '2026-05-03', calories: 1213 },
+  { date: '2026-05-04', calories: 651 },
+  { date: '2026-05-05', calories: 1168 }
+];
+
+// Basal calories (Apple Health)
+const basalCaloriesNew2 = [
+  { date: '2026-04-24', calories: 1889 },
+  { date: '2026-04-25', calories: 1899 },
+  { date: '2026-04-26', calories: 1867 },
+  { date: '2026-04-27', calories: 1937 },
+  { date: '2026-04-28', calories: 1880 },
+  { date: '2026-04-29', calories: 1841 },
+  { date: '2026-04-30', calories: 1872 },
+  { date: '2026-05-01', calories: 1923 },
+  { date: '2026-05-02', calories: 1914 },
+  { date: '2026-05-03', calories: 1866 },
+  { date: '2026-05-04', calories: 1887 },
+  { date: '2026-05-05', calories: 1894 }
+];
+
+// Kcal intake (default 2100)
+const kcalIntakeNew2 = [
+  { date: '2026-04-24', kcal: 2100 },
+  { date: '2026-04-25', kcal: 2100 },
+  { date: '2026-04-26', kcal: 2100 },
+  { date: '2026-04-27', kcal: 2100 },
+  { date: '2026-04-28', kcal: 2100 },
+  { date: '2026-04-29', kcal: 2100 },
+  { date: '2026-04-30', kcal: 2100 },
+  { date: '2026-05-01', kcal: 2100 },
+  { date: '2026-05-02', kcal: 2100 },
+  { date: '2026-05-03', kcal: 2100 },
+  { date: '2026-05-04', kcal: 2100 },
+  { date: '2026-05-05', kcal: 2100 }
+];
+
+// Workouts (Apple Health)
+const workoutsNew2 = [
+  { date: '2026-04-25', type: "Running", details: '43min' },
+  { date: '2026-04-27', type: "Running", details: '40min' },
+  { date: '2026-04-28', type: "Running", details: '41min' },
+  { date: '2026-04-30', type: "Running", details: '36min' },
+  { date: '2026-05-01', type: "Walking", details: '46min' },
+  { date: '2026-05-01', type: "Running", details: '34min' },
+  { date: '2026-05-03', type: "Walking", details: '26min' },
+  { date: '2026-05-03', type: "Walking", details: '15min' },
+  { date: '2026-05-03', type: "Running", details: '36min' },
+  { date: '2026-05-05', type: "Running", details: '43min' }
+];
+
+// Apply weight
+weightDataNew2.forEach(entry => {
+  const bio = getOrCreateBiometric(entry.date);
+  bio.weight = entry.weight;
+});
+
+// Apply RHR & HRV
+rhrHrvNew2.forEach(entry => {
+  const bio = getOrCreateBiometric(entry.date);
+  bio.hr = entry.rhr;
+  bio.hrv = entry.hrv;
+});
+
+// Apply sleep
+sleepDataNew2.forEach(entry => {
+  const bio = getOrCreateBiometric(entry.date);
+  bio.sleep = entry.sleep;
+});
+
+// Apply active calories
+activeCaloriesNew2.forEach(entry => {
+  const bio = getOrCreateBiometric(entry.date);
+  bio.activeCalories = entry.calories;
+});
+
+// Apply basal calories
+basalCaloriesNew2.forEach(entry => {
+  const bio = getOrCreateBiometric(entry.date);
+  bio.basalCalories = entry.calories;
+});
+
+// Apply kcal intake
+kcalIntakeNew2.forEach(entry => {
+  data.food = data.food.filter(f => !(f.date === entry.date && f.name === 'Daily intake'));
+  data.food.push({
+    id: Date.now() + Math.random(),
+    date: entry.date,
+    time: '12:00',
+    name: 'Daily intake',
+    calories: entry.kcal,
+    protein: 0,
+    carbs: 0,
+    fats: 0,
+    meal: 'lunch',
+    grams: 0
+  });
+});
+
+// Apply workouts
+workoutsNew2.forEach(entry => {
+  const exists = data.workouts.some(w => 
+    w.date === entry.date && 
+    w.type === entry.type &&
+    w.notes === entry.details
+  );
   if (!exists) {
     data.workouts.push({
       id: Date.now() + Math.random(),
