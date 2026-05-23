@@ -79,6 +79,18 @@ input, select, textarea, button {
   border-radius: 8px;
 }
 
+/* Restore checkbox appearance */
+input[type="checkbox"] {
+  -webkit-appearance: checkbox !important;
+  appearance: checkbox !important;
+  width: 18px !important;
+  height: 18px !important;
+  padding: 0 !important;
+  margin: 0 8px 0 0 !important;
+  border-radius: 3px !important;
+  cursor: pointer;
+}
+
 button {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -1349,7 +1361,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-20-v52b-checkboxFix';
+    const LAST_UPDATE = '2026-05-20-v52c-checkboxCSS';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
