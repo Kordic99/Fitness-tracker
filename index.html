@@ -1349,7 +1349,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-20-v52-chartToggles';
+    const LAST_UPDATE = '2026-05-20-v52b-checkboxFix';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -3663,26 +3663,26 @@ if (document.readyState === 'loading') {
     
     <div style="margin-bottom: 20px; padding: 12px; background: var(--bg-primary); border-radius: 6px;">
       <div style="font-weight: 500; margin-bottom: 8px;">📊 Visible Dashboard Charts:</div>
-      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
-        <input type="checkbox" id="chart-calorie_intake" style="margin-right: 6px;"> Calorie intake (weekly)
+      <label style="display: flex; align-items: center; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-calorie_intake" style="width: 18px; height: 18px; margin-right: 8px; padding: 0;"> Calorie intake (weekly)
       </label>
-      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
-        <input type="checkbox" id="chart-active_calories" style="margin-right: 6px;"> Active calories (weekly)
+      <label style="display: flex; align-items: center; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-active_calories" style="width: 18px; height: 18px; margin-right: 8px; padding: 0;"> Active calories (weekly)
       </label>
-      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
-        <input type="checkbox" id="chart-surplus_deficit" style="margin-right: 6px;"> Surplus/Deficit
+      <label style="display: flex; align-items: center; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-surplus_deficit" style="width: 18px; height: 18px; margin-right: 8px; padding: 0;"> Surplus/Deficit
       </label>
-      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
-        <input type="checkbox" id="chart-weight" style="margin-right: 6px;"> Weight trend
+      <label style="display: flex; align-items: center; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-weight" style="width: 18px; height: 18px; margin-right: 8px; padding: 0;"> Weight trend
       </label>
-      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
-        <input type="checkbox" id="chart-rhr" style="margin-right: 6px;"> RHR trend
+      <label style="display: flex; align-items: center; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-rhr" style="width: 18px; height: 18px; margin-right: 8px; padding: 0;"> RHR trend
       </label>
-      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
-        <input type="checkbox" id="chart-hrv" style="margin-right: 6px;"> HRV trend
+      <label style="display: flex; align-items: center; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-hrv" style="width: 18px; height: 18px; margin-right: 8px; padding: 0;"> HRV trend
       </label>
-      <label style="display: block; margin-bottom: 0; cursor: pointer;">
-        <input type="checkbox" id="chart-sleep" style="margin-right: 6px;"> Sleep score
+      <label style="display: flex; align-items: center; margin-bottom: 0; cursor: pointer;">
+        <input type="checkbox" id="chart-sleep" style="width: 18px; height: 18px; margin-right: 8px; padding: 0;"> Sleep score
       </label>
     </div>
     
