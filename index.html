@@ -804,19 +804,16 @@ canvas {
       <input type="date" id="dashboard-date-input" style="padding: 8px; font-size: 14px; flex: 1; min-width: 140px; max-width: 200px;">
       <button id="next-day-btn" style="padding: 8px 10px; font-size: 16px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px;">→</button>
       
-      <!-- Small Export/Import buttons -->
-      <button onclick="exportData()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; white-space: nowrap;">📤 Export</button>
-      <button onclick="document.getElementById('import-file').click()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: var(--success); color: white; border: none; border-radius: 4px; white-space: nowrap;">📥 Import</button>
+      <!-- Cloud sync and settings buttons -->
       <button onclick="manualCloudSync()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: #6f42c1; color: white; border: none; border-radius: 4px; white-space: nowrap;">☁️ Push</button>
       <button onclick="syncFromCloud()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: #17a2b8; color: white; border: none; border-radius: 4px; white-space: nowrap;">⬇️ Pull</button>
       <button onclick="openSettings()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: #6c757d; color: white; border: none; border-radius: 4px; white-space: nowrap;">⚙️ Settings</button>
-      <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(event)">
     </div>
     
     <div id="export-status" style="margin-bottom: 12px; padding: 8px 12px; font-size: 12px; border-radius: 4px; display: none;"></div>
 
     <div class="dashboard-calorie-charts" style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
-      <div class="card" style="padding: 12px;">
+      <div class="card chart-card" data-chart="calorie_intake" style="padding: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px;">Calorie intake</h3>
           <div style="display: flex; gap: 4px;">
@@ -829,7 +826,7 @@ canvas {
         </div>
       </div>
 
-      <div class="card" style="padding: 12px;">
+      <div class="card chart-card" data-chart="active_calories" style="padding: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px;">Active calories</h3>
           <div style="display: flex; gap: 4px;">
@@ -844,7 +841,7 @@ canvas {
     </div>
 
     <div class="dashboard-deficit-chart" style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
-      <div class="card" style="padding: 12px;">
+      <div class="card chart-card" data-chart="surplus_deficit" style="padding: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px;">Surplus/Deficit</h3>
           <div style="display: flex; gap: 4px;">
@@ -859,7 +856,7 @@ canvas {
     </div>
 
     <div class="trends-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-      <div class="card" style="padding: 12px;">
+      <div class="card chart-card" data-chart="weight" style="padding: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px;">Weight trend (35 days)</h3>
           <div style="display: flex; gap: 4px;">
@@ -872,7 +869,7 @@ canvas {
         </div>
       </div>
 
-      <div class="card" style="padding: 12px;">
+      <div class="card chart-card" data-chart="rhr" style="padding: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px;">RHR trend (35 days)</h3>
           <div style="display: flex; gap: 4px;">
@@ -887,7 +884,7 @@ canvas {
     </div>
 
     <div class="trends-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-      <div class="card" style="padding: 12px;">
+      <div class="card chart-card" data-chart="hrv" style="padding: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px;">HRV trend (35 days)</h3>
           <div style="display: flex; gap: 4px;">
@@ -900,7 +897,7 @@ canvas {
         </div>
       </div>
 
-      <div class="card" style="padding: 12px;">
+      <div class="card chart-card" data-chart="sleep" style="padding: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px;">Sleep score (35 days)</h3>
           <div style="display: flex; gap: 4px;">
@@ -1298,7 +1295,16 @@ let data = {
   settings: {
     calorieTarget: 2400,
     dailyIntakeDefault: 2400,
-    foodPreset: []
+    foodPreset: [],
+    visibleCharts: {
+      calorie_intake: true,
+      active_calories: true,
+      surplus_deficit: true,
+      weight: true,
+      rhr: true,
+      hrv: true,
+      sleep: true
+    }
   }
 };
 
@@ -1343,7 +1349,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-20-v51-settings';
+    const LAST_UPDATE = '2026-05-20-v52-chartToggles';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -1362,7 +1368,18 @@ function loadData() {
         data.settings = {
           calorieTarget: 2400,
           dailyIntakeDefault: 2400,
-          foodPreset: []
+          foodPreset: [],
+          visibleCharts: {
+            calorie_intake: true, active_calories: true, surplus_deficit: true,
+            weight: true, rhr: true, hrv: true, sleep: true
+          }
+        };
+      }
+      // Ensure visibleCharts exists
+      if (!data.settings.visibleCharts) {
+        data.settings.visibleCharts = {
+          calorie_intake: true, active_calories: true, surplus_deficit: true,
+          weight: true, rhr: true, hrv: true, sleep: true
         };
       }
     }
@@ -1606,21 +1623,25 @@ async function syncToCloud() {
       // First check if a row exists
       const { data: existing } = await supabaseClient.from('user_settings').select('id').limit(1);
       
+      const settingsPayload = {
+        calorie_target: data.settings.calorieTarget,
+        daily_intake_default: data.settings.dailyIntakeDefault,
+        food_preset: data.settings.foodPreset || [],
+        visible_charts: data.settings.visibleCharts || {
+          calorie_intake: true, active_calories: true, surplus_deficit: true,
+          weight: true, rhr: true, hrv: true, sleep: true
+        }
+      };
+      
       if (existing && existing.length > 0) {
         // Update existing row
         await supabaseClient.from('user_settings').update({
-          calorie_target: data.settings.calorieTarget,
-          daily_intake_default: data.settings.dailyIntakeDefault,
-          food_preset: data.settings.foodPreset || [],
+          ...settingsPayload,
           updated_at: new Date().toISOString()
         }).eq('id', existing[0].id);
       } else {
         // Insert new row
-        await supabaseClient.from('user_settings').insert({
-          calorie_target: data.settings.calorieTarget,
-          daily_intake_default: data.settings.dailyIntakeDefault,
-          food_preset: data.settings.foodPreset || []
-        });
+        await supabaseClient.from('user_settings').insert(settingsPayload);
       }
     }
     
@@ -1669,8 +1690,16 @@ async function syncFromCloud() {
       data.settings = {
         calorieTarget: cloudSettings.calorie_target || 2400,
         dailyIntakeDefault: cloudSettings.daily_intake_default || 2400,
-        foodPreset: cloudSettings.food_preset || []
+        foodPreset: cloudSettings.food_preset || [],
+        visibleCharts: cloudSettings.visible_charts || {
+          calorie_intake: true, active_calories: true, surplus_deficit: true,
+          weight: true, rhr: true, hrv: true, sleep: true
+        }
       };
+      // Apply chart visibility after pull
+      if (typeof applyChartVisibility === 'function') {
+        setTimeout(applyChartVisibility, 100);
+      }
     }
     
     // Save to localStorage
@@ -3632,6 +3661,37 @@ if (document.readyState === 'loading') {
       <div style="font-size: 11px; color: var(--text-secondary); margin-top: 3px;">Used for "Daily intake" food entries</div>
     </div>
     
+    <div style="margin-bottom: 20px; padding: 12px; background: var(--bg-primary); border-radius: 6px;">
+      <div style="font-weight: 500; margin-bottom: 8px;">📊 Visible Dashboard Charts:</div>
+      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-calorie_intake" style="margin-right: 6px;"> Calorie intake (weekly)
+      </label>
+      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-active_calories" style="margin-right: 6px;"> Active calories (weekly)
+      </label>
+      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-surplus_deficit" style="margin-right: 6px;"> Surplus/Deficit
+      </label>
+      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-weight" style="margin-right: 6px;"> Weight trend
+      </label>
+      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-rhr" style="margin-right: 6px;"> RHR trend
+      </label>
+      <label style="display: block; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chart-hrv" style="margin-right: 6px;"> HRV trend
+      </label>
+      <label style="display: block; margin-bottom: 0; cursor: pointer;">
+        <input type="checkbox" id="chart-sleep" style="margin-right: 6px;"> Sleep score
+      </label>
+    </div>
+    
+    <div style="margin-bottom: 20px; padding: 12px; background: var(--bg-primary); border-radius: 6px;">
+      <div style="font-weight: 500; margin-bottom: 8px;">💾 Backup:</div>
+      <button onclick="exportData()" style="width: 100%; padding: 8px 12px; font-size: 13px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px;">📤 Export Data to JSON</button>
+      <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;">Download a local backup file with all your data</div>
+    </div>
+    
     <div style="display: flex; gap: 10px; justify-content: flex-end;">
       <button onclick="closeSettings()" style="padding: 8px 16px; cursor: pointer; background: #6c757d; color: white; border: none; border-radius: 4px;">Cancel</button>
       <button onclick="saveSettings()" style="padding: 8px 16px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 4px;">💾 Save</button>
@@ -3646,10 +3706,27 @@ if (document.readyState === 'loading') {
 <script>
 function openSettings() {
   if (!data.settings) {
-    data.settings = { calorieTarget: 2400, dailyIntakeDefault: 2400, foodPreset: [] };
+    data.settings = { 
+      calorieTarget: 2400, 
+      dailyIntakeDefault: 2400, 
+      foodPreset: [],
+      visibleCharts: { calorie_intake: true, active_calories: true, surplus_deficit: true, weight: true, rhr: true, hrv: true, sleep: true }
+    };
   }
+  if (!data.settings.visibleCharts) {
+    data.settings.visibleCharts = { calorie_intake: true, active_calories: true, surplus_deficit: true, weight: true, rhr: true, hrv: true, sleep: true };
+  }
+  
   document.getElementById('setting-calorie-target').value = data.settings.calorieTarget;
   document.getElementById('setting-daily-intake').value = data.settings.dailyIntakeDefault;
+  
+  // Set chart checkboxes
+  const charts = ['calorie_intake', 'active_calories', 'surplus_deficit', 'weight', 'rhr', 'hrv', 'sleep'];
+  charts.forEach(chart => {
+    const cb = document.getElementById('chart-' + chart);
+    if (cb) cb.checked = data.settings.visibleCharts[chart] !== false;
+  });
+  
   document.getElementById('settings-modal').style.display = 'flex';
 }
 
@@ -3673,7 +3750,17 @@ function saveSettings() {
   data.settings.calorieTarget = calorieTarget;
   data.settings.dailyIntakeDefault = dailyIntake;
   
+  // Save chart visibility
+  const charts = ['calorie_intake', 'active_calories', 'surplus_deficit', 'weight', 'rhr', 'hrv', 'sleep'];
+  charts.forEach(chart => {
+    const cb = document.getElementById('chart-' + chart);
+    if (cb) data.settings.visibleCharts[chart] = cb.checked;
+  });
+  
   localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+  
+  // Apply chart visibility
+  applyChartVisibility();
   
   // Update displays
   if (typeof updateFoodStats === 'function') updateFoodStats();
@@ -3681,6 +3768,25 @@ function saveSettings() {
   closeSettings();
   alert('✅ Settings saved locally!\n\nClick ☁️ Push to sync to cloud.');
 }
+
+function applyChartVisibility() {
+  if (!data.settings || !data.settings.visibleCharts) return;
+  
+  const cards = document.querySelectorAll('.chart-card');
+  cards.forEach(card => {
+    const chartName = card.getAttribute('data-chart');
+    if (chartName && data.settings.visibleCharts[chartName] === false) {
+      card.style.display = 'none';
+    } else {
+      card.style.display = '';
+    }
+  });
+}
+
+// Apply visibility on page load
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(applyChartVisibility, 100);
+});
 </script>
 
 </body>
