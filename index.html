@@ -1522,7 +1522,30 @@ async function doSignup() {
       return;
     }
     
+    // Check if user was created
+    if (!authData || !authData.user) {
+      showAuthError('Signup failed: No user data returned. Email confirmation may be required - please disable it in Supabase Auth settings.');
+      showAuthLoading(false);
+      return;
+    }
+    
     currentUser = authData.user;
+    
+    // If no session (email confirmation required), try to sign in immediately
+    if (!authData.session) {
+      const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({
+        email: nicknameToEmail(nickname),
+        password: password
+      });
+      
+      if (signInError || !signInData.user) {
+        showAuthError('Account created but auto-login failed. Please disable email confirmation in Supabase and try logging in.');
+        showAuthLoading(false);
+        return;
+      }
+      
+      currentUser = signInData.user;
+    }
     
     // Create user profile
     const { error: profileError } = await supabaseClient
@@ -1535,7 +1558,7 @@ async function doSignup() {
     
     if (profileError) {
       console.error('Profile creation error:', profileError);
-      showAuthError('Profile creation failed');
+      showAuthError('Profile creation failed: ' + profileError.message);
       showAuthLoading(false);
       return;
     }
@@ -1740,7 +1763,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v56b-emailFix';
+    const LAST_UPDATE = '2026-05-24-v56c-signupFix';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
