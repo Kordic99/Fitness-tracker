@@ -1356,7 +1356,7 @@ let currentUserProfile = null;
 
 // Convert nickname to fake email
 function nicknameToEmail(nickname) {
-  return nickname.toLowerCase().trim() + '@fitness.local';
+  return nickname.toLowerCase().trim() + '@fitnesstracker.app';
 }
 
 // Show login form
@@ -1740,7 +1740,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v56-multiUser';
+    const LAST_UPDATE = '2026-05-24-v56b-emailFix';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
