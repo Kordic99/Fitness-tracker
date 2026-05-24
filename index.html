@@ -1383,7 +1383,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v54-cloudOnlyFood';
+    const LAST_UPDATE = '2026-05-24-v54b-foodDisplayFix';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -1723,6 +1723,7 @@ async function syncFromCloud() {
     updateDashboard();
     updateFoodStats();
     renderLists();
+    renderFoodDatabase();
     if (typeof updateBiometricsDisplay === 'function') {
       updateBiometricsDisplay();
     }
