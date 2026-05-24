@@ -1003,10 +1003,9 @@ canvas {
         </div>
         <button class="btn btn-primary" onclick="saveAsPreset()" style="width: 100%; padding: 4px; font-size: 10px; margin-bottom: 6px;">💾 Save as preset</button>
         <div class="form-group" style="margin-bottom: 6px;">
-          <label style="font-size: 10px;">Food</label>
-          <select id="food-name" style="padding: 3px; font-size: 11px;">
-            <option value="">-- Select --</option>
-          </select>
+          <label style="font-size: 10px;">Food (type to search)</label>
+          <input type="text" id="food-name-input" list="food-name-list" placeholder="Type or select..." style="padding: 3px; font-size: 11px;" autocomplete="off">
+          <datalist id="food-name-list"></datalist>
         </div>
         <div class="form-group" style="margin-bottom: 6px;">
           <label style="font-size: 10px;">Grams</label>
@@ -1763,7 +1762,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v58-inviteAudit';
+    const LAST_UPDATE = '2026-05-24-v59-uiPolish';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -2248,14 +2247,16 @@ function deleteFromFoodDatabase(id) {
 }
 
 function updateFoodDropdown() {
-  const select = document.getElementById('food-name');
-  select.innerHTML = '<option value="">-- Select from database --</option>';
+  const datalist = document.getElementById('food-name-list');
+  if (!datalist) return;
+  
+  datalist.innerHTML = '';
   
   data.foodDatabase.forEach(food => {
     const option = document.createElement('option');
-    option.value = food.id;
-    option.textContent = food.name;
-    select.appendChild(option);
+    option.value = food.name;
+    option.dataset.foodId = food.id;
+    datalist.appendChild(option);
   });
 }
 
@@ -2312,11 +2313,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  const foodSelect = document.getElementById('food-name');
-  foodSelect.addEventListener('change', function() {
-    const selectedId = parseInt(this.value);
-    if (selectedId) {
-      const food = data.foodDatabase.find(f => f.id === selectedId);
+  const foodSelect = document.getElementById('food-name-input');
+  foodSelect.addEventListener('input', function() {
+    const selectedName = this.value.trim();
+    if (selectedName) {
+      const food = data.foodDatabase.find(f => f.name === selectedName);
       if (food) {
         // Store base values (per 100g)
         document.getElementById('food-calories-base').value = food.calories;
@@ -2450,12 +2451,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Add food
 function addFood() {
-  const selectedId = parseInt(document.getElementById('food-name').value);
+  const selectedName = document.getElementById('food-name-input').value.trim();
   const dateInput = document.getElementById('food-date-input').value;
   const grams = parseInt(document.getElementById('food-grams').value) || 100;
   const meal = document.getElementById('food-meal').value;
   
-  if (!selectedId) {
+  if (!selectedName) {
     alert('Please select a food from the database');
     return;
   }
@@ -2465,7 +2466,7 @@ function addFood() {
     return;
   }
   
-  const food = data.foodDatabase.find(f => f.id === selectedId);
+  const food = data.foodDatabase.find(f => f.name === selectedName);
   if (!food) {
     alert('Food not found in database');
     return;
@@ -2492,7 +2493,7 @@ function addFood() {
   });
   
   // Reset form
-  document.getElementById('food-name').value = '';
+  document.getElementById('food-name-input').value = '';
   document.getElementById('food-grams').value = '100';
   document.getElementById('display-grams').textContent = '100';
   document.getElementById('food-calories-display').textContent = '-';
@@ -4128,8 +4129,8 @@ if (document.readyState === 'loading') {
 }
 </script>
 <!-- Edit Food Modal -->
-<div id="edit-food-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-  <div style="background: var(--bg); padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; max-height: 90vh; overflow-y: auto;">
+<div id="edit-food-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: var(--bg-primary); padding: 24px; border-radius: 12px; max-width: 420px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 1px solid var(--border);">
     <h2 style="margin-top: 0;">✏️ Edit Food</h2>
     
     <input type="hidden" id="edit-food-id">
@@ -4230,8 +4231,8 @@ function saveEditedFood() {
 </script>
 
 <!-- Settings Modal -->
-<div id="settings-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-  <div style="background: var(--bg); padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; max-height: 90vh; overflow-y: auto;">
+<div id="settings-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: var(--bg-primary); padding: 24px; border-radius: 12px; max-width: 420px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 1px solid var(--border);">
     <h2 style="margin-top: 0;">⚙️ Settings</h2>
     
     <div style="margin-bottom: 15px;">
