@@ -797,6 +797,67 @@ canvas {
 </style>
 </head>
 <body>
+
+<!-- LOGIN/SIGNUP SCREEN (shown when not authenticated) -->
+<div id="auth-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+  <div style="background: var(--bg-primary); padding: 30px; border-radius: 12px; max-width: 380px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+    <h1 style="text-align: center; margin: 0 0 8px 0; font-size: 24px;">🏃 Fitness Tracker</h1>
+    <p id="auth-subtitle" style="text-align: center; color: var(--text-secondary); margin: 0 0 24px 0; font-size: 13px;">Sign in to continue</p>
+    
+    <!-- Login Form -->
+    <div id="login-form">
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500;">Nickname:</label>
+        <input type="text" id="login-nickname" autocomplete="username" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;">
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500;">Password:</label>
+        <input type="password" id="login-password" autocomplete="current-password" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;">
+      </div>
+      <button onclick="doLogin()" style="width: 100%; padding: 12px; font-size: 15px; cursor: pointer; background: #3266ad; color: white; border: none; border-radius: 6px; font-weight: 500;">Sign In</button>
+      <p style="text-align: center; margin: 16px 0 0 0; font-size: 13px;">
+        Don't have account? <a href="#" onclick="showSignupForm(); return false;" style="color: #3266ad; font-weight: 500;">Sign up</a>
+      </p>
+    </div>
+    
+    <!-- Signup Form -->
+    <div id="signup-form" style="display: none;">
+      <div id="invite-code-section" style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500;">Invite Code:</label>
+        <input type="text" id="signup-invite" placeholder="e.g. XKJ4-2PNF" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-transform: uppercase;">
+        <div id="first-user-notice" style="display: none; margin-top: 6px; padding: 8px; background: #d4edda; color: #155724; border-radius: 4px; font-size: 12px;">
+          🎉 You'll be the first user (owner) - no invite needed!
+        </div>
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500;">Nickname:</label>
+        <input type="text" id="signup-nickname" autocomplete="username" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500;">Password:</label>
+        <input type="password" id="signup-password" autocomplete="new-password" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;">
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500;">Confirm Password:</label>
+        <input type="password" id="signup-password-confirm" autocomplete="new-password" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;">
+      </div>
+      <button onclick="doSignup()" style="width: 100%; padding: 12px; font-size: 15px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 6px; font-weight: 500;">Sign Up</button>
+      <p style="text-align: center; margin: 16px 0 0 0; font-size: 13px;">
+        Already have account? <a href="#" onclick="showLoginForm(); return false;" style="color: #3266ad; font-weight: 500;">Sign in</a>
+      </p>
+    </div>
+    
+    <div id="auth-error" style="display: none; margin-top: 12px; padding: 10px; background: #f8d7da; color: #721c24; border-radius: 4px; font-size: 13px;"></div>
+    <div id="auth-loading" style="display: none; text-align: center; margin-top: 12px; color: var(--text-secondary); font-size: 13px;">⏳ Loading...</div>
+  </div>
+</div>
+
+<!-- USER BADGE (shown when logged in) -->
+<div id="user-badge" style="display: none; position: fixed; top: 10px; right: 10px; z-index: 100; background: var(--bg-primary); padding: 6px 10px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 12px; display: flex; align-items: center; gap: 8px;">
+  <span id="user-badge-text">👤 ...</span>
+  <button onclick="doLogout()" title="Logout" style="padding: 4px 8px; cursor: pointer; background: #dc3545; color: white; border: none; border-radius: 3px; font-size: 11px;">🚪</button>
+</div>
+
 <div class="container">
   <h1>Fitness Tracker</h1>
   
@@ -1289,6 +1350,308 @@ if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
   console.warn('⚠️ Supabase library not loaded, using localStorage only');
 }
 
+// ===== AUTH SYSTEM =====
+let currentUser = null;
+let currentUserProfile = null;
+
+// Convert nickname to fake email
+function nicknameToEmail(nickname) {
+  return nickname.toLowerCase().trim() + '@fitness.local';
+}
+
+// Show login form
+function showLoginForm() {
+  document.getElementById('login-form').style.display = 'block';
+  document.getElementById('signup-form').style.display = 'none';
+  document.getElementById('auth-subtitle').textContent = 'Sign in to continue';
+  hideAuthError();
+}
+
+// Show signup form
+async function showSignupForm() {
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('signup-form').style.display = 'block';
+  document.getElementById('auth-subtitle').textContent = 'Create your account';
+  hideAuthError();
+  
+  // Check if first user
+  try {
+    const { count } = await supabaseClient.from('user_profiles').select('*', { count: 'exact', head: true });
+    if (count === 0) {
+      document.getElementById('first-user-notice').style.display = 'block';
+      document.getElementById('signup-invite').required = false;
+      document.getElementById('signup-invite').placeholder = '(not needed - you will be owner)';
+    } else {
+      document.getElementById('first-user-notice').style.display = 'none';
+      document.getElementById('signup-invite').required = true;
+    }
+  } catch(e) {
+    console.error('Error checking first user:', e);
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideAuthError() {
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+function showAuthLoading(show) {
+  document.getElementById('auth-loading').style.display = show ? 'block' : 'none';
+}
+
+// Login function
+async function doLogin() {
+  hideAuthError();
+  const nickname = document.getElementById('login-nickname').value.trim();
+  const password = document.getElementById('login-password').value;
+  
+  if (!nickname || !password) {
+    showAuthError('Please enter nickname and password');
+    return;
+  }
+  
+  showAuthLoading(true);
+  
+  try {
+    const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+      email: nicknameToEmail(nickname),
+      password: password
+    });
+    
+    if (authError) {
+      showAuthError('Invalid nickname or password');
+      showAuthLoading(false);
+      return;
+    }
+    
+    currentUser = authData.user;
+    await loadUserProfile();
+    await onLoginSuccess();
+  } catch (e) {
+    console.error('Login error:', e);
+    showAuthError('Login failed: ' + e.message);
+    showAuthLoading(false);
+  }
+}
+
+// Signup function
+async function doSignup() {
+  hideAuthError();
+  const inviteCode = document.getElementById('signup-invite').value.trim().toUpperCase();
+  const nickname = document.getElementById('signup-nickname').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const passwordConfirm = document.getElementById('signup-password-confirm').value;
+  
+  if (!nickname || !password) {
+    showAuthError('Please fill all required fields');
+    return;
+  }
+  if (password.length < 6) {
+    showAuthError('Password must be at least 6 characters');
+    return;
+  }
+  if (password !== passwordConfirm) {
+    showAuthError('Passwords do not match');
+    return;
+  }
+  
+  showAuthLoading(true);
+  
+  try {
+    // Check if first user (owner mode)
+    const { count } = await supabaseClient.from('user_profiles').select('*', { count: 'exact', head: true });
+    const isFirstUser = count === 0;
+    let userRole = 'retail';
+    
+    if (isFirstUser) {
+      userRole = 'owner';
+    } else {
+      // Validate invite code
+      if (!inviteCode) {
+        showAuthError('Invite code required');
+        showAuthLoading(false);
+        return;
+      }
+      const { data: invite, error: inviteError } = await supabaseClient
+        .from('invite_codes')
+        .select('*')
+        .eq('code', inviteCode)
+        .is('used_by', null)
+        .single();
+      
+      if (inviteError || !invite) {
+        showAuthError('Invalid or already used invite code');
+        showAuthLoading(false);
+        return;
+      }
+      
+      if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
+        showAuthError('Invite code expired');
+        showAuthLoading(false);
+        return;
+      }
+    }
+    
+    // Check nickname availability
+    const { data: existing } = await supabaseClient
+      .from('user_profiles')
+      .select('id')
+      .eq('nickname', nickname.toLowerCase())
+      .maybeSingle();
+    
+    if (existing) {
+      showAuthError('Nickname already taken');
+      showAuthLoading(false);
+      return;
+    }
+    
+    // Create auth account
+    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+      email: nicknameToEmail(nickname),
+      password: password
+    });
+    
+    if (authError) {
+      showAuthError('Signup failed: ' + authError.message);
+      showAuthLoading(false);
+      return;
+    }
+    
+    currentUser = authData.user;
+    
+    // Create user profile
+    const { error: profileError } = await supabaseClient
+      .from('user_profiles')
+      .insert({
+        id: currentUser.id,
+        nickname: nickname.toLowerCase(),
+        role: userRole
+      });
+    
+    if (profileError) {
+      console.error('Profile creation error:', profileError);
+      showAuthError('Profile creation failed');
+      showAuthLoading(false);
+      return;
+    }
+    
+    // Mark invite as used (if not first user)
+    if (!isFirstUser && inviteCode) {
+      await supabaseClient
+        .from('invite_codes')
+        .update({ used_by: currentUser.id, used_at: new Date().toISOString() })
+        .eq('code', inviteCode);
+    }
+    
+    await loadUserProfile();
+    await onLoginSuccess();
+  } catch (e) {
+    console.error('Signup error:', e);
+    showAuthError('Signup failed: ' + e.message);
+    showAuthLoading(false);
+  }
+}
+
+// Load user profile from database
+async function loadUserProfile() {
+  if (!currentUser) return;
+  
+  try {
+    const { data, error } = await supabaseClient
+      .from('user_profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+    
+    if (data) {
+      currentUserProfile = data;
+    }
+  } catch (e) {
+    console.error('Error loading profile:', e);
+  }
+}
+
+// Called after successful login/signup
+async function onLoginSuccess() {
+  showAuthLoading(false);
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('user-badge').style.display = 'flex';
+  
+  // Update badge
+  const roleEmoji = { owner: '👑', admin: '🔵', retail: '⚪' };
+  const emoji = roleEmoji[currentUserProfile?.role] || '👤';
+  const role = currentUserProfile?.role || 'user';
+  document.getElementById('user-badge-text').textContent = `${emoji} ${currentUserProfile?.nickname || 'user'} (${role})`;
+  
+  console.log('✅ Logged in as:', currentUserProfile);
+  
+  // Pull latest data from cloud
+  if (typeof syncFromCloud === 'function') {
+    await syncFromCloud();
+  }
+}
+
+// Logout function
+async function doLogout() {
+  if (!confirm('Are you sure you want to logout? Local data will be cleared.')) return;
+  
+  try {
+    await supabaseClient.auth.signOut();
+    localStorage.clear();
+    location.reload();
+  } catch (e) {
+    console.error('Logout error:', e);
+    // Force logout even if error
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+// Check auth state on page load
+async function checkAuthState() {
+  if (!supabaseClient) {
+    document.getElementById('auth-screen').style.display = 'flex';
+    return;
+  }
+  
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    
+    if (session) {
+      currentUser = session.user;
+      await loadUserProfile();
+      if (currentUserProfile) {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('user-badge').style.display = 'flex';
+        const roleEmoji = { owner: '👑', admin: '🔵', retail: '⚪' };
+        const emoji = roleEmoji[currentUserProfile.role] || '👤';
+        document.getElementById('user-badge-text').textContent = `${emoji} ${currentUserProfile.nickname} (${currentUserProfile.role})`;
+        console.log('✅ Resumed session for:', currentUserProfile);
+      } else {
+        // Session exists but no profile - log out
+        await supabaseClient.auth.signOut();
+        document.getElementById('auth-screen').style.display = 'flex';
+      }
+    } else {
+      document.getElementById('auth-screen').style.display = 'flex';
+    }
+  } catch (e) {
+    console.error('Auth check error:', e);
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+}
+
+// Run auth check on page load
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(checkAuthState, 100);
+});
+// ===== END AUTH SYSTEM =====
+
 let currentDate = new Date();
 // Store individual dates for each chart (if they differ from main currentDate)
 let chartDates = {
@@ -1377,7 +1740,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v55-foodEdit';
+    const LAST_UPDATE = '2026-05-24-v56-multiUser';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -1472,7 +1835,8 @@ function toSupabaseBio(b) {
     sleep: b.sleep !== undefined ? b.sleep : null,
     active_calories: b.activeCalories || 0,
     basal_calories: b.basalCalories || 0,
-    notes: b.notes || ''
+    notes: b.notes || '',
+    user_id: currentUser ? currentUser.id : null
   };
 }
 
@@ -1486,7 +1850,8 @@ function toSupabaseFood(f) {
     calories: f.calories || 0,
     protein: f.protein || 0,
     carbs: f.carbs || 0,
-    fats: f.fats || 0
+    fats: f.fats || 0,
+    user_id: currentUser ? currentUser.id : null
   };
 }
 
@@ -1497,7 +1862,8 @@ function toSupabaseWorkout(w) {
     type: w.type,
     duration: w.duration || 0,
     calories: w.calories || 0,
-    notes: w.notes || ''
+    notes: w.notes || '',
+    user_id: currentUser ? currentUser.id : null
   };
 }
 
@@ -1590,13 +1956,22 @@ function showSyncStatus(message, type) {
 // Push all local data to cloud (overwrites cloud)
 async function syncToCloud() {
   if (!supabaseClient) return false;
+  if (!currentUser) {
+    console.warn('Not logged in - cannot sync');
+    return false;
+  }
   
   try {
-    // Clear and replace all data in cloud
-    await supabaseClient.from('biometrics').delete().neq('id', 0);
-    await supabaseClient.from('food_entries').delete().neq('id', 0);
-    await supabaseClient.from('workouts').delete().neq('id', 0);
-    await supabaseClient.from('food_database').delete().neq('id', 0);
+    // Clear and replace only THIS USER'S data (food_database is shared)
+    await supabaseClient.from('biometrics').delete().eq('user_id', currentUser.id);
+    await supabaseClient.from('food_entries').delete().eq('user_id', currentUser.id);
+    await supabaseClient.from('workouts').delete().eq('user_id', currentUser.id);
+    
+    // Food database is shared - only owners/admins can modify it
+    const canEditFoodDb = currentUserProfile && ['owner', 'admin'].includes(currentUserProfile.role);
+    if (canEditFoodDb) {
+      await supabaseClient.from('food_database').delete().neq('id', 0);
+    }
     
     // Insert biometrics
     if (data.biometrics.length > 0) {
@@ -1619,17 +1994,21 @@ async function syncToCloud() {
       if (error) throw error;
     }
     
-    // Insert food database
-    if (data.foodDatabase.length > 0) {
+    // Insert food database (only owners/admins)
+    if (canEditFoodDb && data.foodDatabase.length > 0) {
       const foodDBs = data.foodDatabase.map(toSupabaseFoodDB);
       const { error } = await supabaseClient.from('food_database').insert(foodDBs);
       if (error) throw error;
     }
     
-    // Upsert user settings
+    // Upsert user settings (per user)
     if (data.settings) {
-      // First check if a row exists
-      const { data: existing } = await supabaseClient.from('user_settings').select('id').limit(1);
+      // Check if a row exists for THIS user
+      const { data: existing } = await supabaseClient
+        .from('user_settings')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .limit(1);
       
       const settingsPayload = {
         calorie_target: data.settings.calorieTarget,
@@ -1638,7 +2017,8 @@ async function syncToCloud() {
         visible_charts: data.settings.visibleCharts || {
           calorie_intake: true, active_calories: true, surplus_deficit: true,
           weight: true, rhr: true, hrv: true, sleep: true
-        }
+        },
+        user_id: currentUser.id
       };
       
       if (existing && existing.length > 0) {
@@ -1667,17 +2047,21 @@ async function syncFromCloud() {
     showSyncStatus('❌ Cloud sync not available', 'error');
     return false;
   }
+  if (!currentUser) {
+    console.warn('Not logged in - cannot pull');
+    return false;
+  }
   
   try {
     showSyncStatus('🔄 Loading from cloud...', 'info');
     
-    // Fetch all tables in parallel
+    // Fetch all tables in parallel - filter user-specific by user_id
     const [biosRes, foodsRes, workoutsRes, foodDBsRes, settingsRes] = await Promise.all([
-      supabaseClient.from('biometrics').select('*').order('date'),
-      supabaseClient.from('food_entries').select('*').order('date'),
-      supabaseClient.from('workouts').select('*').order('date'),
+      supabaseClient.from('biometrics').select('*').eq('user_id', currentUser.id).order('date'),
+      supabaseClient.from('food_entries').select('*').eq('user_id', currentUser.id).order('date'),
+      supabaseClient.from('workouts').select('*').eq('user_id', currentUser.id).order('date'),
       supabaseClient.from('food_database').select('*'),
-      supabaseClient.from('user_settings').select('*').limit(1)
+      supabaseClient.from('user_settings').select('*').eq('user_id', currentUser.id).limit(1)
     ]);
     
     if (biosRes.error) throw biosRes.error;
