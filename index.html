@@ -810,12 +810,14 @@ canvas {
 
   <!-- Dashboard Tab -->
   <div class="tab-content active" id="dashboard">
-    <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+    <div class="date-row" style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
       <label style="font-size: 13px; font-weight: 500;">Date</label>
       <button id="prev-day-btn" style="padding: 8px 10px; font-size: 16px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px;">←</button>
       <input type="date" id="dashboard-date-input" style="padding: 8px; font-size: 14px; flex: 1; min-width: 140px; max-width: 200px;">
       <button id="next-day-btn" style="padding: 8px 10px; font-size: 16px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px;">→</button>
-      
+    </div>
+    
+    <div class="action-buttons-row" style="margin-bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap;">
       <!-- Cloud sync and settings buttons -->
       <button onclick="manualCloudSync()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: #6f42c1; color: white; border: none; border-radius: 4px; white-space: nowrap;">☁️ Push</button>
       <button onclick="syncFromCloud()" style="padding: 6px 10px; font-size: 11px; cursor: pointer; background: #17a2b8; color: white; border: none; border-radius: 4px; white-space: nowrap;">⬇️ Pull</button>
@@ -872,6 +874,7 @@ canvas {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px;">Weight trend (35 days)</h3>
           <div style="display: flex; gap: 4px;">
+            <button onclick="resetZoom('weight')" title="Reset zoom" style="padding: 4px 6px; font-size: 11px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">🔍</button>
             <button onclick="changeChartDate('weight', -7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">←</button>
             <button onclick="changeChartDate('weight', 7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">→</button>
           </div>
@@ -885,6 +888,7 @@ canvas {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px;">RHR trend (35 days)</h3>
           <div style="display: flex; gap: 4px;">
+            <button onclick="resetZoom('rhr')" title="Reset zoom" style="padding: 4px 6px; font-size: 11px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">🔍</button>
             <button onclick="changeChartDate('rhr', -7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">←</button>
             <button onclick="changeChartDate('rhr', 7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">→</button>
           </div>
@@ -900,6 +904,7 @@ canvas {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px;">HRV trend (35 days)</h3>
           <div style="display: flex; gap: 4px;">
+            <button onclick="resetZoom('hrv')" title="Reset zoom" style="padding: 4px 6px; font-size: 11px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">🔍</button>
             <button onclick="changeChartDate('hrv', -7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">←</button>
             <button onclick="changeChartDate('hrv', 7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">→</button>
           </div>
@@ -913,6 +918,7 @@ canvas {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px;">Sleep score (35 days)</h3>
           <div style="display: flex; gap: 4px;">
+            <button onclick="resetZoom('sleep')" title="Reset zoom" style="padding: 4px 6px; font-size: 11px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">🔍</button>
             <button onclick="changeChartDate('sleep', -7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">←</button>
             <button onclick="changeChartDate('sleep', 7)" style="padding: 4px 8px; font-size: 12px; cursor: pointer; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary);">→</button>
           </div>
@@ -1269,6 +1275,8 @@ canvas {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ===== SUPABASE CLOUD SYNC =====
@@ -1321,6 +1329,20 @@ let data = {
 };
 
 // Change individual chart date
+// Reset zoom on a trend chart
+function resetZoom(chartName) {
+  const chartMap = {
+    'weight': weightChart,
+    'rhr': rhrChart,
+    'hrv': hrvChart,
+    'sleep': sleepChart
+  };
+  const chart = chartMap[chartName];
+  if (chart && chart.resetZoom) {
+    chart.resetZoom();
+  }
+}
+
 function changeChartDate(chartName, days) {
   // Get current date for this chart (use chart-specific or fall back to main)
   let chartDate = chartDates[chartName] ? new Date(chartDates[chartName]) : new Date(currentDate);
@@ -1361,7 +1383,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-20-v52c-checkboxCSS';
+    const LAST_UPDATE = '2026-05-24-v53-zoomMobile';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -3139,6 +3161,17 @@ function renderWeightChart(date) {
               return fullDates[tooltipItems[0].dataIndex];
             }
           }
+        },
+        zoom: {
+          pan: {
+            enabled: true,
+            mode: 'x'
+          },
+          zoom: {
+            wheel: { enabled: true },
+            pinch: { enabled: true },
+            mode: 'x'
+          }
         }
       },
       scales: {
@@ -3224,6 +3257,17 @@ function renderRHRChart(date) {
               return fullDates[tooltipItems[0].dataIndex];
             }
           }
+        },
+        zoom: {
+          pan: {
+            enabled: true,
+            mode: 'x'
+          },
+          zoom: {
+            wheel: { enabled: true },
+            pinch: { enabled: true },
+            mode: 'x'
+          }
         }
       },
       scales: {
@@ -3306,6 +3350,17 @@ function renderHRVChart(date) {
               return fullDates[tooltipItems[0].dataIndex];
             }
           }
+        },
+        zoom: {
+          pan: {
+            enabled: true,
+            mode: 'x'
+          },
+          zoom: {
+            wheel: { enabled: true },
+            pinch: { enabled: true },
+            mode: 'x'
+          }
         }
       },
       scales: {
@@ -3387,6 +3442,17 @@ function renderSleepChart(date) {
             title: function(tooltipItems) {
               return fullDates[tooltipItems[0].dataIndex];
             }
+          }
+        },
+        zoom: {
+          pan: {
+            enabled: true,
+            mode: 'x'
+          },
+          zoom: {
+            wheel: { enabled: true },
+            pinch: { enabled: true },
+            mode: 'x'
           }
         }
       },
