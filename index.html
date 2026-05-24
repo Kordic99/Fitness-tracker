@@ -1264,12 +1264,6 @@ canvas {
       <h3>Your food database</h3>
       <div id="food-db-list"></div>
     </div>
-
-    <div class="card">
-      <h3>Export data</h3>
-      <p style="color: var(--text-secondary); margin-bottom: 12px;">Download all your fitness data as JSON</p>
-      <button class="btn btn-secondary" onclick="exportData()">Download data</button>
-    </div>
   </div>
 </div>
 
@@ -1383,7 +1377,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v54b-foodDisplayFix';
+    const LAST_UPDATE = '2026-05-24-v55-foodEdit';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -1869,7 +1863,8 @@ function renderFoodDatabase() {
           <div class="entry-title">${food.name}</div>
           <div class="entry-details">${food.calories} cal • P: ${food.protein}g • C: ${food.carbs}g • F: ${food.fats}g</div>
         </div>
-        <div class="entry-actions">
+        <div class="entry-actions" style="display: flex; gap: 4px;">
+          <button class="btn btn-primary btn-sm" onclick="openEditFoodModal(${food.id})" style="background: #007bff;">✏️ Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteFromFoodDatabase(${food.id})">Delete</button>
         </div>
       </div>
@@ -3714,6 +3709,108 @@ if (document.readyState === 'loading') {
   setTimeout(checkAppleHealthSync, 500);
 }
 </script>
+<!-- Edit Food Modal -->
+<div id="edit-food-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: var(--bg); padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; max-height: 90vh; overflow-y: auto;">
+    <h2 style="margin-top: 0;">✏️ Edit Food</h2>
+    
+    <input type="hidden" id="edit-food-id">
+    
+    <div style="margin-bottom: 12px;">
+      <label style="display: block; margin-bottom: 5px; font-weight: 500;">Name:</label>
+      <input type="text" id="edit-food-name" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+      <div>
+        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Calories:</label>
+        <input type="number" id="edit-food-calories" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Protein (g):</label>
+        <input type="number" id="edit-food-protein" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Carbs (g):</label>
+        <input type="number" id="edit-food-carbs" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Fats (g):</label>
+        <input type="number" id="edit-food-fats" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+      <button onclick="closeEditFoodModal()" style="padding: 8px 16px; cursor: pointer; background: #6c757d; color: white; border: none; border-radius: 4px;">Cancel</button>
+      <button onclick="saveEditedFood()" style="padding: 8px 16px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 4px;">💾 Save</button>
+    </div>
+    
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: var(--text-secondary);">
+      💡 After saving, click ☁️ Push to sync to cloud.
+    </div>
+  </div>
+</div>
+
+<script>
+function openEditFoodModal(foodId) {
+  const food = data.foodDatabase.find(f => f.id === foodId);
+  if (!food) {
+    alert('Food not found');
+    return;
+  }
+  
+  document.getElementById('edit-food-id').value = food.id;
+  document.getElementById('edit-food-name').value = food.name;
+  document.getElementById('edit-food-calories').value = food.calories;
+  document.getElementById('edit-food-protein').value = food.protein;
+  document.getElementById('edit-food-carbs').value = food.carbs;
+  document.getElementById('edit-food-fats').value = food.fats;
+  
+  document.getElementById('edit-food-modal').style.display = 'flex';
+}
+
+function closeEditFoodModal() {
+  document.getElementById('edit-food-modal').style.display = 'none';
+}
+
+function saveEditedFood() {
+  const foodId = parseInt(document.getElementById('edit-food-id').value) || document.getElementById('edit-food-id').value;
+  const name = document.getElementById('edit-food-name').value.trim();
+  const calories = parseFloat(document.getElementById('edit-food-calories').value);
+  const protein = parseFloat(document.getElementById('edit-food-protein').value);
+  const carbs = parseFloat(document.getElementById('edit-food-carbs').value);
+  const fats = parseFloat(document.getElementById('edit-food-fats').value);
+  
+  if (!name) {
+    alert('Name is required');
+    return;
+  }
+  if (isNaN(calories) || isNaN(protein) || isNaN(carbs) || isNaN(fats)) {
+    alert('All numeric fields must be filled');
+    return;
+  }
+  
+  const food = data.foodDatabase.find(f => f.id == foodId);
+  if (!food) {
+    alert('Food not found');
+    return;
+  }
+  
+  food.name = name;
+  food.calories = calories;
+  food.protein = protein;
+  food.carbs = carbs;
+  food.fats = fats;
+  
+  localStorage.setItem('fitnessTrackerData', JSON.stringify(data));
+  
+  renderFoodDatabase();
+  closeEditFoodModal();
+  
+  alert('✅ Food updated locally!\n\nClick ☁️ Push to sync to cloud.');
+}
+</script>
+
 <!-- Settings Modal -->
 <div id="settings-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
   <div style="background: var(--bg); padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; max-height: 90vh; overflow-y: auto;">
