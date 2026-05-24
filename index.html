@@ -1292,7 +1292,7 @@ canvas {
 
   <!-- Food Database Tab -->
   <div class="tab-content" id="fooddatabase">
-    <div class="card">
+    <div class="card" id="add-food-card">
       <h2>Add food to database</h2>
       <div class="form-group">
         <label>Food name</label>
@@ -1763,7 +1763,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v56d-foodDropdownFix';
+    const LAST_UPDATE = '2026-05-24-v57-adminPanel';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -2265,16 +2265,26 @@ function renderFoodDatabase() {
   if (data.foodDatabase.length === 0) {
     list.innerHTML = '<div class="empty-state" style="padding: 20px;">No foods in database yet</div>';
   } else {
+    const canEditFoodDb = currentUserProfile && ['owner', 'admin'].includes(currentUserProfile.role);
+    
+    // Show/hide Add food card based on role
+    const addCard = document.getElementById('add-food-card');
+    if (addCard) {
+      addCard.style.display = canEditFoodDb ? '' : 'none';
+    }
+    
     list.innerHTML = data.foodDatabase.map(food => `
       <div class="entry-item">
         <div class="entry-content">
           <div class="entry-title">${food.name}</div>
           <div class="entry-details">${food.calories} cal • P: ${food.protein}g • C: ${food.carbs}g • F: ${food.fats}g</div>
         </div>
+        ${canEditFoodDb ? `
         <div class="entry-actions" style="display: flex; gap: 4px;">
           <button class="btn btn-primary btn-sm" onclick="openEditFoodModal(${food.id})" style="background: #007bff;">✏️ Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteFromFoodDatabase(${food.id})">Delete</button>
         </div>
+        ` : ''}
       </div>
     `).join('');
   }
@@ -4267,6 +4277,29 @@ function saveEditedFood() {
       <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;">Download a local backup file with all your data</div>
     </div>
     
+    <!-- ADMIN TOOLS (visible only to owner/admin) -->
+    <div id="admin-tools-section" style="display: none; margin-bottom: 20px; padding: 12px; background: #fff8e1; border: 1px solid #ffd54f; border-radius: 6px;">
+      <div style="font-weight: 500; margin-bottom: 12px;">👑 Admin Tools</div>
+      
+      <!-- Generate Invite -->
+      <div style="margin-bottom: 14px;">
+        <button onclick="generateInviteCode()" style="width: 100%; padding: 8px 12px; font-size: 13px; cursor: pointer; background: #6f42c1; color: white; border: none; border-radius: 4px;">➕ Generate Invite Code (7 days)</button>
+        <div id="generated-invite" style="display: none; margin-top: 8px; padding: 8px; background: white; border-radius: 4px; font-family: monospace; text-align: center;"></div>
+      </div>
+      
+      <!-- Active Invite Codes -->
+      <div style="margin-bottom: 14px;">
+        <div style="font-size: 12px; font-weight: 500; margin-bottom: 6px;">📨 Active Invite Codes:</div>
+        <div id="invite-codes-list" style="font-size: 12px;">Loading...</div>
+      </div>
+      
+      <!-- User Management (owner only) -->
+      <div id="user-management-section" style="display: none;">
+        <div style="font-size: 12px; font-weight: 500; margin-bottom: 6px;">👥 User Management:</div>
+        <div id="users-list" style="font-size: 12px;">Loading...</div>
+      </div>
+    </div>
+    
     <div style="display: flex; gap: 10px; justify-content: flex-end;">
       <button onclick="closeSettings()" style="padding: 8px 16px; cursor: pointer; background: #6c757d; color: white; border: none; border-radius: 4px;">Cancel</button>
       <button onclick="saveSettings()" style="padding: 8px 16px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 4px;">💾 Save</button>
@@ -4303,6 +4336,178 @@ function openSettings() {
   });
   
   document.getElementById('settings-modal').style.display = 'flex';
+  
+  // Show admin tools for owner/admin
+  loadAdminTools();
+}
+
+async function loadAdminTools() {
+  const adminSection = document.getElementById('admin-tools-section');
+  const userMgmtSection = document.getElementById('user-management-section');
+  
+  if (!currentUserProfile || !['owner', 'admin'].includes(currentUserProfile.role)) {
+    adminSection.style.display = 'none';
+    return;
+  }
+  
+  adminSection.style.display = 'block';
+  
+  // Only owner sees user management
+  if (currentUserProfile.role === 'owner') {
+    userMgmtSection.style.display = 'block';
+    loadUsersList();
+  } else {
+    userMgmtSection.style.display = 'none';
+  }
+  
+  // Hide generated invite display
+  document.getElementById('generated-invite').style.display = 'none';
+  
+  // Load active invite codes
+  loadInviteCodes();
+}
+
+async function generateInviteCode() {
+  try {
+    // Generate random 8-char code: XXXX-XXXX
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+      if (i === 4) code += '-';
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    // Expires in 7 days
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    
+    const { error } = await supabaseClient.from('invite_codes').insert({
+      code: code,
+      created_by: currentUser.id,
+      expires_at: expiresAt.toISOString()
+    });
+    
+    if (error) throw error;
+    
+    // Show generated code
+    const display = document.getElementById('generated-invite');
+    display.innerHTML = `
+      <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px;">${code}</div>
+      <div style="font-size: 11px; color: #666;">Expires in 7 days</div>
+      <button onclick="navigator.clipboard.writeText('${code}'); this.textContent='✓ Copied!'" style="margin-top: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 3px;">📋 Copy</button>
+    `;
+    display.style.display = 'block';
+    
+    // Reload codes list
+    loadInviteCodes();
+  } catch (e) {
+    alert('Failed to generate code: ' + e.message);
+  }
+}
+
+async function loadInviteCodes() {
+  const list = document.getElementById('invite-codes-list');
+  try {
+    const { data: codes, error } = await supabaseClient
+      .from('invite_codes')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    if (!codes || codes.length === 0) {
+      list.innerHTML = '<div style="color: #888; font-style: italic;">No invite codes yet</div>';
+      return;
+    }
+    
+    const now = new Date();
+    list.innerHTML = codes.map(c => {
+      const expired = c.expires_at && new Date(c.expires_at) < now;
+      const used = !!c.used_by;
+      let status = '';
+      let bgColor = 'white';
+      
+      if (used) {
+        status = '✅ Used';
+        bgColor = '#e8f5e9';
+      } else if (expired) {
+        status = '⏰ Expired';
+        bgColor = '#ffebee';
+      } else {
+        const daysLeft = Math.ceil((new Date(c.expires_at) - now) / (1000 * 60 * 60 * 24));
+        status = `⏳ ${daysLeft}d left`;
+        bgColor = '#fff';
+      }
+      
+      return `
+        <div style="background: ${bgColor}; padding: 6px 8px; border-radius: 4px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-family: monospace;">${c.code}</span>
+          <span style="font-size: 10px;">${status}</span>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<div style="color: red;">Error: ${e.message}</div>`;
+  }
+}
+
+async function loadUsersList() {
+  const list = document.getElementById('users-list');
+  try {
+    const { data: users, error } = await supabaseClient
+      .from('user_profiles')
+      .select('*')
+      .order('created_at');
+    
+    if (error) throw error;
+    
+    const roleEmoji = { owner: '👑', admin: '🔵', retail: '⚪' };
+    
+    list.innerHTML = users.map(u => {
+      const isCurrentUser = u.id === currentUser.id;
+      const emoji = roleEmoji[u.role] || '👤';
+      
+      // Can change role if NOT current user, AND target is not owner (or current user is owner)
+      const canChangeRole = !isCurrentUser;
+      
+      return `
+        <div style="background: white; padding: 8px; border-radius: 4px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+          <span>${emoji} ${u.nickname}${isCurrentUser ? ' (you)' : ''}</span>
+          ${canChangeRole ? `
+            <select onchange="changeUserRole('${u.id}', this.value, '${u.nickname}', '${u.role}')" style="padding: 2px 6px; font-size: 11px; border: 1px solid #ccc; border-radius: 3px;">
+              <option value="retail" ${u.role === 'retail' ? 'selected' : ''}>retail</option>
+              <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>admin</option>
+              <option value="owner" ${u.role === 'owner' ? 'selected' : ''}>owner</option>
+            </select>
+          ` : `<span style="font-size: 11px; color: #888;">${u.role}</span>`}
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<div style="color: red;">Error: ${e.message}</div>`;
+  }
+}
+
+async function changeUserRole(userId, newRole, nickname, oldRole) {
+  if (!confirm(`Change ${nickname}'s role from ${oldRole} to ${newRole}?`)) {
+    loadUsersList(); // Reset dropdown
+    return;
+  }
+  
+  try {
+    const { error } = await supabaseClient
+      .from('user_profiles')
+      .update({ role: newRole })
+      .eq('id', userId);
+    
+    if (error) throw error;
+    
+    alert(`✅ ${nickname} is now ${newRole}`);
+    loadUsersList();
+  } catch (e) {
+    alert('Failed to change role: ' + e.message);
+    loadUsersList();
+  }
 }
 
 function closeSettings() {
