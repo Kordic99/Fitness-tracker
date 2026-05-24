@@ -1763,7 +1763,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v57-adminPanel';
+    const LAST_UPDATE = '2026-05-24-v58-inviteAudit';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -4408,6 +4408,7 @@ async function generateInviteCode() {
 async function loadInviteCodes() {
   const list = document.getElementById('invite-codes-list');
   try {
+    // Fetch all invite codes
     const { data: codes, error } = await supabaseClient
       .from('invite_codes')
       .select('*')
@@ -4420,6 +4421,20 @@ async function loadInviteCodes() {
       return;
     }
     
+    // Get nicknames for users who used codes
+    const userIds = codes.filter(c => c.used_by).map(c => c.used_by);
+    let userMap = {};
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabaseClient
+        .from('user_profiles')
+        .select('id, nickname')
+        .in('id', userIds);
+      
+      if (profiles) {
+        profiles.forEach(p => { userMap[p.id] = p.nickname; });
+      }
+    }
+    
     const now = new Date();
     list.innerHTML = codes.map(c => {
       const expired = c.expires_at && new Date(c.expires_at) < now;
@@ -4428,7 +4443,8 @@ async function loadInviteCodes() {
       let bgColor = 'white';
       
       if (used) {
-        status = '✅ Used';
+        const usedByNickname = userMap[c.used_by] || 'unknown';
+        status = `✅ Used by ${usedByNickname}`;
         bgColor = '#e8f5e9';
       } else if (expired) {
         status = '⏰ Expired';
@@ -4440,7 +4456,7 @@ async function loadInviteCodes() {
       }
       
       return `
-        <div style="background: ${bgColor}; padding: 6px 8px; border-radius: 4px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="background: ${bgColor}; padding: 6px 8px; border-radius: 4px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
           <span style="font-family: monospace;">${c.code}</span>
           <span style="font-size: 10px;">${status}</span>
         </div>
