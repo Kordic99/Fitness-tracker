@@ -1154,6 +1154,9 @@ canvas {
             <div style="text-align: center; margin-top: 3px; font-size: 10px; color: var(--text-secondary);">Fats</div>
           </div>
         </div>
+        
+        <!-- Per-food breakdown rows (aligned to chart columns) -->
+        <div id="food-breakdown" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);"></div>
       </div>
     </div>
 
@@ -1922,7 +1925,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v62c-roleRefreshFix';
+    const LAST_UPDATE = '2026-05-24-v63-foodBreakdown';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -3097,6 +3100,26 @@ function updateFoodStats() {
   document.getElementById('total-carbs').textContent = Math.round(totalCarbs * 10) / 10;
   document.getElementById('total-fats').textContent = Math.round(totalFats * 10) / 10;
   
+  // Render per-food breakdown (aligned to chart columns: cal | protein | carbs | fats)
+  const breakdownEl = document.getElementById('food-breakdown');
+  if (breakdownEl) {
+    if (dayFood.length === 0) {
+      breakdownEl.innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 11px; padding: 6px;">No food entries</div>';
+    } else {
+      breakdownEl.innerHTML = dayFood.map(f => `
+        <div style="padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 11px;">
+          <div style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 2px;" title="${f.name}">${f.name}</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center;">
+            <div>${f.calories}</div>
+            <div>${Math.round(f.protein * 10) / 10}</div>
+            <div>${Math.round(f.carbs * 10) / 10}</div>
+            <div>${Math.round(f.fats * 10) / 10}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+  
   // Update meal sections for the selected date
   const meals = ['breakfast', 'lunch', 'snack', 'dinner'];
   meals.forEach(meal => {
@@ -3174,15 +3197,10 @@ function updateFoodStats() {
     });
   }
   
-  // Update calorie target display with indicator emoji
+  // Update calorie target display (no emoji, ring color does the indicator)
   const calTargetEl = document.getElementById('cal-target-display');
   if (calTargetEl) {
-    if (showCalIndicator) {
-      const emoji = calOverTarget ? '🔴' : '🟢';
-      calTargetEl.textContent = `/ ${calorieTarget} ${emoji}`;
-    } else {
-      calTargetEl.textContent = '/ ' + calorieTarget;
-    }
+    calTargetEl.textContent = '/ ' + calorieTarget;
   }
   
   // Protein chart (target: 150g)
