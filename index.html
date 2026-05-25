@@ -1809,6 +1809,11 @@ async function checkAuthState() {
         const emoji = roleEmoji[currentUserProfile.role] || '👤';
         document.getElementById('user-badge-text').textContent = `${emoji} ${currentUserProfile.nickname} (${currentUserProfile.role})`;
         console.log('✅ Resumed session for:', currentUserProfile);
+        
+        // Re-render food database now that we have the user profile (for role-based buttons)
+        if (typeof renderFoodDatabase === 'function') {
+          renderFoodDatabase();
+        }
       } else {
         // Session exists but no profile - log out
         await supabaseClient.auth.signOut();
@@ -1917,7 +1922,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v62b-thresholdLine';
+    const LAST_UPDATE = '2026-05-24-v62c-roleRefreshFix';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
