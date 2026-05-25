@@ -133,6 +133,42 @@ button {
     min-height: 44px;
   }
   
+  /* 2x2 grid for meal cards on mobile */
+  .meals-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+  
+  /* Make meal cards more compact on mobile */
+  .meals-grid .card {
+    padding: 6px !important;
+  }
+  
+  .meals-grid h3 {
+    font-size: 11px !important;
+  }
+  
+  .meals-grid .meal-item {
+    font-size: 10px !important;
+    padding: 6px 4px !important;
+  }
+  
+  .meals-grid .meal-item-name {
+    font-size: 10px !important;
+  }
+  
+  .meals-grid .meal-item-cals {
+    font-size: 9px !important;
+    margin-right: 2px !important;
+  }
+  
+  .meals-grid .meal-item-delete {
+    min-width: 28px !important;
+    min-height: 28px !important;
+    padding: 2px 4px !important;
+    font-size: 16px !important;
+  }
+  
   input, select, textarea {
     min-height: 44px;
   }
@@ -1002,10 +1038,10 @@ canvas {
           <input type="date" id="food-date-input" style="padding: 3px; font-size: 11px;">
         </div>
         <button class="btn btn-primary" onclick="saveAsPreset()" style="width: 100%; padding: 4px; font-size: 10px; margin-bottom: 6px;">💾 Save as preset</button>
-        <div class="form-group" style="margin-bottom: 6px;">
+        <div class="form-group" style="margin-bottom: 6px; position: relative;">
           <label style="font-size: 10px;">Food (type to search)</label>
-          <input type="text" id="food-name-input" list="food-name-list" placeholder="Type or select..." style="padding: 3px; font-size: 11px;" autocomplete="off">
-          <datalist id="food-name-list"></datalist>
+          <input type="text" id="food-name-input" placeholder="Type or tap to select..." style="padding: 3px; font-size: 11px;" autocomplete="off" onfocus="showFoodDropdown()" oninput="filterFoodDropdown()" onblur="setTimeout(hideFoodDropdown, 200)">
+          <div id="food-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-top: 2px;"></div>
         </div>
         <div class="form-group" style="margin-bottom: 6px;">
           <label style="font-size: 10px;">Grams</label>
@@ -1095,7 +1131,7 @@ canvas {
     </div>
 
     <!-- Bottom Section: Meals -->
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+    <div class="meals-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
       <div class="card" style="padding: 8px;">
         <h3 style="margin: 0 0 5px; font-size: 12px;">Breakfast</h3>
         <div id="breakfast-list" class="meal-section"></div>
@@ -1762,7 +1798,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v59-uiPolish';
+    const LAST_UPDATE = '2026-05-24-v60-mealsAndSearch';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -2247,17 +2283,63 @@ function deleteFromFoodDatabase(id) {
 }
 
 function updateFoodDropdown() {
-  const datalist = document.getElementById('food-name-list');
-  if (!datalist) return;
+  // Just refresh the dropdown - actual rendering happens in filterFoodDropdown
+  if (document.getElementById('food-dropdown').style.display === 'block') {
+    filterFoodDropdown();
+  }
+}
+
+function showFoodDropdown() {
+  filterFoodDropdown();
+  document.getElementById('food-dropdown').style.display = 'block';
+}
+
+function hideFoodDropdown() {
+  document.getElementById('food-dropdown').style.display = 'none';
+}
+
+function filterFoodDropdown() {
+  const input = document.getElementById('food-name-input');
+  const dropdown = document.getElementById('food-dropdown');
+  const query = input.value.trim().toLowerCase();
   
-  datalist.innerHTML = '';
+  // Filter foods
+  let filtered = data.foodDatabase;
+  if (query) {
+    filtered = data.foodDatabase.filter(f => f.name.toLowerCase().includes(query));
+  }
   
-  data.foodDatabase.forEach(food => {
-    const option = document.createElement('option');
-    option.value = food.name;
-    option.dataset.foodId = food.id;
-    datalist.appendChild(option);
-  });
+  // Sort alphabetically
+  filtered.sort((a, b) => a.name.localeCompare(b.name));
+  
+  if (filtered.length === 0) {
+    dropdown.innerHTML = '<div style="padding: 8px; color: #888; font-size: 12px; font-style: italic;">No matching foods</div>';
+    dropdown.style.display = 'block';
+    return;
+  }
+  
+  dropdown.innerHTML = filtered.map(f => `
+    <div onclick="selectFood('${f.id}', this)" style="padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid var(--border);" 
+         onmouseover="this.style.background='var(--bg-secondary)'" 
+         onmouseout="this.style.background=''">
+      <div style="font-weight: 500;">${f.name}</div>
+      <div style="font-size: 10px; color: var(--text-secondary);">${f.calories} cal • P:${f.protein}g • C:${f.carbs}g • F:${f.fats}g per 100g</div>
+    </div>
+  `).join('');
+  dropdown.style.display = 'block';
+}
+
+function selectFood(foodId, element) {
+  const food = data.foodDatabase.find(f => f.id == foodId);
+  if (!food) return;
+  
+  const input = document.getElementById('food-name-input');
+  input.value = food.name;
+  
+  // Trigger the input event to populate base values
+  input.dispatchEvent(new Event('input'));
+  
+  hideFoodDropdown();
 }
 
 function renderFoodDatabase() {
