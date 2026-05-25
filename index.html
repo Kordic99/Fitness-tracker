@@ -1917,7 +1917,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v62-mealEditAndIndicator';
+    const LAST_UPDATE = '2026-05-24-v62b-thresholdLine';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -3487,15 +3487,37 @@ function renderWeeklyChart(date) {
     return cal > calorieTarget ? '#dc3545' : '#28a745';
   });
   
+  // Build datasets - bars + horizontal target line (if indicator on)
+  const datasets = [{
+    type: 'bar',
+    label: 'Calories',
+    data: calories,
+    backgroundColor: barColors,
+    order: 2
+  }];
+  
+  if (showIndicator) {
+    datasets.push({
+      type: 'line',
+      label: 'Target',
+      data: new Array(calories.length).fill(calorieTarget),
+      borderColor: '#888',
+      borderWidth: 2,
+      borderDash: [6, 4],
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      fill: false,
+      tension: 0,
+      datalabels: { display: false },
+      order: 1
+    });
+  }
+  
   weeklyChart = new Chart(ctx, {
     type: 'bar',
     data: {
       labels,
-      datasets: [{
-        label: 'Calories',
-        data: calories,
-        backgroundColor: barColors
-      }]
+      datasets: datasets
     },
     options: {
       responsive: true,
