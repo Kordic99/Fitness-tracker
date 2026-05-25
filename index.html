@@ -1925,7 +1925,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v63e-matchHeight';
+    const LAST_UPDATE = '2026-05-24-v64-mealDateFix';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -2523,6 +2523,7 @@ document.addEventListener('DOMContentLoaded', function() {
     foodDateInput.addEventListener('change', function() {
       applyPresetIfNeeded(this.value);
       updateFoodStats();
+      renderLists();
     });
   }
   
@@ -3432,7 +3433,9 @@ function renderDailyCharts() {
 
 // Render lists
 function renderLists() {
-  const dateStr = getDateString(currentDate);
+  // Use food date input if available (Food tab), otherwise use currentDate
+  const foodDateInput = document.getElementById('food-date-input');
+  const dateStr = foodDateInput && foodDateInput.value ? foodDateInput.value : getDateString(currentDate);
   
   // Food lists by meal
   const dayFood = data.food.filter(f => f.date === dateStr);
