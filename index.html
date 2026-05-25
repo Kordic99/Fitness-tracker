@@ -872,6 +872,7 @@ canvas {
       <div style="margin-bottom: 12px;">
         <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500;">Password:</label>
         <input type="password" id="signup-password" autocomplete="new-password" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;">
+        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Min 8 chars, 1 capital letter, 1 number</div>
       </div>
       <div style="margin-bottom: 16px;">
         <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500;">Confirm Password:</label>
@@ -1394,6 +1395,78 @@ function nicknameToEmail(nickname) {
   return nickname.toLowerCase().trim() + '@fitnesstracker.app';
 }
 
+// Password validation
+function validatePassword(password) {
+  if (password.length < 8) return 'Password must be at least 8 characters';
+  if (!/[A-Z]/.test(password)) return 'Password must contain at least 1 capital letter';
+  if (!/[0-9]/.test(password)) return 'Password must contain at least 1 number';
+  return null;
+}
+
+// Rate limiting for login attempts
+const LOGIN_RATE_LIMIT_KEY = 'fitness_login_attempts';
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_LOCKOUT_MS = 60000; // 1 minute
+
+function checkLoginRateLimit() {
+  try {
+    const data = JSON.parse(localStorage.getItem(LOGIN_RATE_LIMIT_KEY) || '{}');
+    const now = Date.now();
+    
+    // Clear if lockout expired
+    if (data.lockedUntil && now > data.lockedUntil) {
+      localStorage.removeItem(LOGIN_RATE_LIMIT_KEY);
+      return { allowed: true };
+    }
+    
+    // If locked, return time remaining
+    if (data.lockedUntil) {
+      const seconds = Math.ceil((data.lockedUntil - now) / 1000);
+      return { allowed: false, secondsLeft: seconds };
+    }
+    
+    return { allowed: true, attempts: data.attempts || 0 };
+  } catch (e) {
+    return { allowed: true };
+  }
+}
+
+function recordLoginAttempt(success) {
+  try {
+    if (success) {
+      localStorage.removeItem(LOGIN_RATE_LIMIT_KEY);
+      return;
+    }
+    
+    const data = JSON.parse(localStorage.getItem(LOGIN_RATE_LIMIT_KEY) || '{}');
+    data.attempts = (data.attempts || 0) + 1;
+    
+    if (data.attempts >= MAX_LOGIN_ATTEMPTS) {
+      data.lockedUntil = Date.now() + LOGIN_LOCKOUT_MS;
+    }
+    
+    localStorage.setItem(LOGIN_RATE_LIMIT_KEY, JSON.stringify(data));
+  } catch (e) {}
+}
+
+// Audit log helper
+async function logAudit(action, tableName, recordId, details) {
+  if (!supabaseClient || !currentUser || !currentUserProfile) return;
+  
+  try {
+    await supabaseClient.from('audit_log').insert({
+      user_id: currentUser.id,
+      user_nickname: currentUserProfile.nickname,
+      action: action,
+      table_name: tableName,
+      record_id: recordId ? String(recordId) : null,
+      details: details || null
+    });
+  } catch (e) {
+    console.error('Audit log error:', e);
+  }
+}
+
 // Show login form
 function showLoginForm() {
   document.getElementById('login-form').style.display = 'block';
@@ -1442,6 +1515,14 @@ function showAuthLoading(show) {
 // Login function
 async function doLogin() {
   hideAuthError();
+  
+  // Check rate limit
+  const rateCheck = checkLoginRateLimit();
+  if (!rateCheck.allowed) {
+    showAuthError(`Too many failed attempts. Please wait ${rateCheck.secondsLeft} seconds.`);
+    return;
+  }
+  
   const nickname = document.getElementById('login-nickname').value.trim();
   const password = document.getElementById('login-password').value;
   
@@ -1459,11 +1540,19 @@ async function doLogin() {
     });
     
     if (authError) {
-      showAuthError('Invalid nickname or password');
+      recordLoginAttempt(false);
+      const updatedCheck = checkLoginRateLimit();
+      if (!updatedCheck.allowed) {
+        showAuthError(`Too many failed attempts. Locked for ${updatedCheck.secondsLeft} seconds.`);
+      } else {
+        const remaining = MAX_LOGIN_ATTEMPTS - (updatedCheck.attempts || 0);
+        showAuthError(`Invalid nickname or password. ${remaining} attempt(s) remaining.`);
+      }
       showAuthLoading(false);
       return;
     }
     
+    recordLoginAttempt(true);
     currentUser = authData.user;
     await loadUserProfile();
     await onLoginSuccess();
@@ -1486,10 +1575,14 @@ async function doSignup() {
     showAuthError('Please fill all required fields');
     return;
   }
-  if (password.length < 6) {
-    showAuthError('Password must be at least 6 characters');
+  
+  // Stronger password validation
+  const passwordError = validatePassword(password);
+  if (passwordError) {
+    showAuthError(passwordError);
     return;
   }
+  
   if (password !== passwordConfirm) {
     showAuthError('Passwords do not match');
     return;
@@ -1798,7 +1891,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v60-mealsAndSearch';
+    const LAST_UPDATE = '2026-05-24-v61-securityHardening';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
@@ -2253,14 +2346,16 @@ function addToFoodDatabase() {
     return;
   }
   
-  data.foodDatabase.push({
+  const newFood = {
     id: Date.now(),
     name,
     calories,
     protein,
     carbs,
     fats
-  });
+  };
+  
+  data.foodDatabase.push(newFood);
   
   document.getElementById('db-food-name').value = '';
   document.getElementById('db-food-calories').value = '';
@@ -2271,14 +2366,23 @@ function addToFoodDatabase() {
   updateFoodDropdown();
   renderFoodDatabase();
   saveData();
+  
+  // Audit log
+  logAudit('food_added', 'food_database', newFood.id, { name, calories, protein, carbs, fats });
 }
 
 function deleteFromFoodDatabase(id) {
+  const food = data.foodDatabase.find(item => item.id === id);
   if (confirm('Delete this food from database?')) {
     data.foodDatabase = data.foodDatabase.filter(item => item.id !== id);
     updateFoodDropdown();
     renderFoodDatabase();
     saveData();
+    
+    // Audit log
+    if (food) {
+      logAudit('food_deleted', 'food_database', id, { name: food.name });
+    }
   }
 }
 
@@ -2348,12 +2452,13 @@ function renderFoodDatabase() {
   if (data.foodDatabase.length === 0) {
     list.innerHTML = '<div class="empty-state" style="padding: 20px;">No foods in database yet</div>';
   } else {
-    const canEditFoodDb = currentUserProfile && ['owner', 'admin'].includes(currentUserProfile.role);
+    const canAddFood = currentUserProfile && ['owner', 'admin'].includes(currentUserProfile.role);
+    const canEditDeleteFood = currentUserProfile && currentUserProfile.role === 'owner';
     
     // Show/hide Add food card based on role
     const addCard = document.getElementById('add-food-card');
     if (addCard) {
-      addCard.style.display = canEditFoodDb ? '' : 'none';
+      addCard.style.display = canAddFood ? '' : 'none';
     }
     
     list.innerHTML = data.foodDatabase.map(food => `
@@ -2362,7 +2467,7 @@ function renderFoodDatabase() {
           <div class="entry-title">${food.name}</div>
           <div class="entry-details">${food.calories} cal • P: ${food.protein}g • C: ${food.carbs}g • F: ${food.fats}g</div>
         </div>
-        ${canEditFoodDb ? `
+        ${canEditDeleteFood ? `
         <div class="entry-actions" style="display: flex; gap: 4px;">
           <button class="btn btn-primary btn-sm" onclick="openEditFoodModal(${food.id})" style="background: #007bff;">✏️ Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteFromFoodDatabase(${food.id})">Delete</button>
@@ -4297,6 +4402,8 @@ function saveEditedFood() {
     return;
   }
   
+  const oldValues = { name: food.name, calories: food.calories, protein: food.protein, carbs: food.carbs, fats: food.fats };
+  
   food.name = name;
   food.calories = calories;
   food.protein = protein;
@@ -4307,6 +4414,12 @@ function saveEditedFood() {
   
   renderFoodDatabase();
   closeEditFoodModal();
+  
+  // Audit log
+  logAudit('food_edited', 'food_database', foodId, { 
+    before: oldValues, 
+    after: { name, calories, protein, carbs, fats } 
+  });
   
   alert('✅ Food updated locally!\n\nClick ☁️ Push to sync to cloud.');
 }
@@ -4381,6 +4494,12 @@ function saveEditedFood() {
         <div style="font-size: 12px; font-weight: 500; margin-bottom: 6px;">👥 User Management:</div>
         <div id="users-list" style="font-size: 12px;">Loading...</div>
       </div>
+      
+      <!-- Audit Log -->
+      <div style="margin-top: 14px;">
+        <div style="font-size: 12px; font-weight: 500; margin-bottom: 6px;">📜 Audit Log (last 20):</div>
+        <div id="audit-log-list" style="font-size: 11px; max-height: 200px; overflow-y: auto;">Loading...</div>
+      </div>
     </div>
     
     <div style="display: flex; gap: 10px; justify-content: flex-end;">
@@ -4448,6 +4567,74 @@ async function loadAdminTools() {
   
   // Load active invite codes
   loadInviteCodes();
+  
+  // Load audit log
+  loadAuditLog();
+}
+
+async function loadAuditLog() {
+  const list = document.getElementById('audit-log-list');
+  try {
+    const { data: logs, error } = await supabaseClient
+      .from('audit_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
+    if (error) throw error;
+    
+    if (!logs || logs.length === 0) {
+      list.innerHTML = '<div style="color: #888; font-style: italic;">No audit entries yet</div>';
+      return;
+    }
+    
+    const actionEmoji = {
+      food_added: '➕',
+      food_edited: '✏️',
+      food_deleted: '🗑️',
+      role_changed: '👤',
+      invite_generated: '📨'
+    };
+    
+    const actionLabel = {
+      food_added: 'added food',
+      food_edited: 'edited food',
+      food_deleted: 'deleted food',
+      role_changed: 'changed role',
+      invite_generated: 'generated invite'
+    };
+    
+    list.innerHTML = logs.map(log => {
+      const emoji = actionEmoji[log.action] || '•';
+      const label = actionLabel[log.action] || log.action;
+      const date = new Date(log.created_at);
+      const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString().slice(0, 5);
+      
+      let detail = '';
+      if (log.details) {
+        if (log.action === 'food_added' && log.details.name) {
+          detail = ` "${log.details.name}"`;
+        } else if (log.action === 'food_edited' && log.details.after?.name) {
+          detail = ` "${log.details.after.name}"`;
+        } else if (log.action === 'food_deleted' && log.details.name) {
+          detail = ` "${log.details.name}"`;
+        } else if (log.action === 'role_changed') {
+          detail = ` ${log.details.target_nickname}: ${log.details.from}→${log.details.to}`;
+        } else if (log.action === 'invite_generated') {
+          detail = ` ${log.record_id}`;
+        }
+      }
+      
+      return `
+        <div style="padding: 4px 6px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 6px;">
+          <span>${emoji} <strong>${log.user_nickname}</strong> ${label}${detail}</span>
+          <span style="color: var(--text-secondary); font-size: 10px; white-space: nowrap;">${dateStr}</span>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<div style="color: red;">Error: ${e.message}</div>`;
+  }
 }
 
 async function generateInviteCode() {
@@ -4471,6 +4658,9 @@ async function generateInviteCode() {
     });
     
     if (error) throw error;
+    
+    // Audit log
+    logAudit('invite_generated', 'invite_codes', code, { expires_at: expiresAt.toISOString() });
     
     // Show generated code
     const display = document.getElementById('generated-invite');
@@ -4600,6 +4790,13 @@ async function changeUserRole(userId, newRole, nickname, oldRole) {
       .eq('id', userId);
     
     if (error) throw error;
+    
+    // Audit log
+    logAudit('role_changed', 'user_profiles', userId, { 
+      target_nickname: nickname, 
+      from: oldRole, 
+      to: newRole 
+    });
     
     alert(`✅ ${nickname} is now ${newRole}`);
     loadUsersList();
