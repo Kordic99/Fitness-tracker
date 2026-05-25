@@ -1103,9 +1103,9 @@ canvas {
       </div>
 
       <!-- Right: Today's Nutrition -->
-      <div class="card" style="padding: 8px;">
+      <div class="card" style="padding: 8px; display: flex; flex-direction: column;">
         <h3 style="margin: 0 0 8px; font-size: 12px;">Today's nutrition</h3>
-        <div class="nutrition-charts" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+        <div class="nutrition-charts" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; flex-shrink: 0;">
           <!-- Calories Chart -->
           <div>
             <div style="position: relative; width: 60px; height: 60px; margin: 0 auto;">
@@ -1156,7 +1156,7 @@ canvas {
         </div>
         
         <!-- Per-food breakdown rows (aligned to chart columns) -->
-        <div id="food-breakdown" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); max-height: 180px; overflow-y: auto;"></div>
+        <div id="food-breakdown" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); flex: 1; min-height: 100px; overflow-y: auto;"></div>
       </div>
     </div>
 
@@ -1925,7 +1925,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v63b-scrollableBreakdown';
+    const LAST_UPDATE = '2026-05-24-v63c-flexBreakdown';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
