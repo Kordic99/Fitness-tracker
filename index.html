@@ -1056,7 +1056,7 @@ canvas {
 
   <!-- Food Tab -->
   <div class="tab-content" id="food">
-    <div class="food-layout" style="display: grid; grid-template-columns: 170px 1fr; gap: 10px; margin-bottom: 10px;">
+    <div class="food-layout" style="display: grid; grid-template-columns: 170px 1fr; gap: 10px; margin-bottom: 10px; align-items: stretch;">
       <!-- Left: Compact Food Form -->
       <div class="card" style="padding: 8px;">
         <h3 style="margin: 0 0 6px; font-size: 12px;">Log food</h3>
@@ -1103,7 +1103,7 @@ canvas {
       </div>
 
       <!-- Right: Today's Nutrition -->
-      <div class="card" style="padding: 8px; height: 280px; display: flex; flex-direction: column; overflow: hidden;">
+      <div class="card" style="padding: 8px; height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden;">
         <h3 style="margin: 0 0 8px; font-size: 12px; flex-shrink: 0;">Today's nutrition</h3>
         <div class="nutrition-charts" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; flex-shrink: 0;">
           <!-- Calories Chart -->
@@ -1925,7 +1925,7 @@ function loadData() {
     const saved = localStorage.getItem('fitnessTrackerData');
     
     // FORCE RESET FLAG - change this date to force reload
-    const LAST_UPDATE = '2026-05-24-v63d-fixedHeight';
+    const LAST_UPDATE = '2026-05-24-v63e-matchHeight';
     const lastUpdate = localStorage.getItem('lastUpdate');
     
     if (lastUpdate !== LAST_UPDATE) {
